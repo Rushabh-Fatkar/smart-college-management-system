@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Faculty Registration</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            Smart College Management System
+        </a>
+
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/students">Students</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="/faculty">Faculty</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">Courses</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/attendance">Attendance</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-warning" href="/logout">
+                        Logout
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+<div class="container mt-4">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-6">
+
+            <div class="card shadow">
+
+                <div class="card-header bg-primary text-white text-center">
+
+                    <h3 th:if="${faculty.id == null}">
+                        Faculty Registration
+                    </h3>
+
+                    <h3 th:if="${faculty.id != null}">
+                        Edit Faculty
+                    </h3>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div th:if="${error}"
+                         class="alert alert-danger">
+
+                        <span th:text="${error}"></span>
+
+                    </div>
+
+                    <form th:action="@{/saveFaculty}"
+                          th:object="${faculty}"
+                          method="post">
+
+                        <input type="hidden"
+                               th:field="*{id}">
+
+                        <!-- Name -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Name
+                            </label>
+
+                            <input type="text"
+                                   th:field="*{name}"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                        <!-- Email -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Email
+                            </label>
+
+                            <input type="email"
+                                   th:field="*{email}"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                        <!-- Mobile -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Mobile
+                            </label>
+
+                            <input type="text"
+                                   th:field="*{mobile}"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                        <!-- Department -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Department
+                            </label>
+
+                            <input type="text"
+                                   th:field="*{department}"
+                                   class="form-control"
+                                   required>
+
+                        </div>
+
+                        <!-- Username -->
+
+                        <div class="mb-3">
+
+    <label class="form-label">
+        Username
+    </label>
+
+    <input type="text"
+           name="username"
+           class="form-control"
+           placeholder="Enter Faculty Username"
+           th:value="${facultyUsername}"
+           th:readonly="${faculty.id != null}"
+           autocomplete="off"
+           required>
+
+    <small th:if="${faculty.id != null}"
+           class="text-muted">
+
+        Username cannot be changed while editing.
+
+    </small>
+
+</div>
+
+                        <!-- Password -->
+
+                        <div class="mb-3"
+                             th:if="${faculty.id == null}">
+
+                            <label class="form-label">
+                                Password
+                            </label>
+
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Enter Faculty Password"
+                                   required>
+
+                        </div>
+
+                        <!-- Save Button -->
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            <span th:if="${faculty.id == null}">
+                                Save Faculty
+                            </span>
+
+                            <span th:if="${faculty.id != null}">
+                                Update Faculty
+                            </span>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+
+</html>

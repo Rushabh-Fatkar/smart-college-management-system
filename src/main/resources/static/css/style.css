@@ -1,0 +1,19 @@
+body{
+    background: #f4f7fc;
+    font-family: Arial, sans-serif;
+}
+.card{
+    border-radius: 15px;
+    overflow: hidden;
+    border: none;
+}
+.btn-primary{
+    transition: 0.3s;
+}
+
+.btn-primary:hover{
+    transform: scale(1.03);
+}
+.card{
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.15);
+}
