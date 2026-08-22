@@ -3,91 +3,168 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Smart College Management System</title>
+    <title>Smart College Management System</title>
 
-<!-- Bootstrap CSS -->
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
 </head>
 
 <body>
+
 <!-- Navigation Bar Start -->
+
 <nav class="navbar navbar-expand-md navbar-dark bg-primary">
 
     <div class="container">
 
         <!-- Project Name -->
-        <a class="navbar-brand fw-bold" href="#">
+
+        <a class="navbar-brand fw-bold" href="/">
             🎓 Smart College Management System
         </a>
-        <button class="navbar-toggler" type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarMenu">
 
-    <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarmenu"
+                aria-controls="navbarmenu"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
 
-</button>
-<div class="collapse navbar-collapse"id="navbarmenu">
+            <span class="navbar-toggler-icon"></span>
 
-    <ul class="navbar-nav ms-auto">
+        </button>
 
-        <li class="nav-item">
-            <a class="nav-link active" href="#">Home</a>
-        </li>
+        <div class="collapse navbar-collapse" id="navbarmenu">
 
-        <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
-        </li>
+            <ul class="navbar-nav ms-auto">
 
-        <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
-        </li>
+                <li class="nav-item">
 
-        <li class="nav-item">
-            <a class="btn btn-light ms-3" href="#">
-                Login
-            </a>
-        </li>
+                    <a class="nav-link active" href="/">
+                        Home
+                    </a>
 
-    </ul>
+                </li>
 
-</div>
+                <li class="nav-item">
+
+                    <a class="nav-link" href="#about">
+                        About
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link" href="#contact">
+                        Contact
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="btn btn-light ms-md-3 mt-2 mt-md-0"
+                       href="/login">
+
+                        Login
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
     </div>
 
 </nav>
+
 <!-- Navigation Bar End -->
+
+
+<!-- Main Content -->
+
 <div class="container mt-5">
 
-<h1 class="text-primary text-center">
-Smart College Management System
-</h1>
+    <h1 class="text-primary text-center">
 
-<p class="text-center fs-5">
+        Smart College Management System
 
-Welcome to our Industrial Training Project.
+    </h1>
 
-</p>
+    <p class="text-center fs-5">
 
-<div class="text-center mt-4">
+        Welcome to our Industrial Training Project.
 
-<button class="btn btn-primary">
+    </p>
 
-Login
+    <div class="text-center mt-4">
 
-</button>
+        <a href="/login"
+           class="btn btn-primary">
+
+            Login
+
+        </a>
+
+    </div>
 
 </div>
 
+
+<!-- About Section -->
+
+<div id="about" class="container mt-5">
+
+    <div class="text-center">
+
+        <h3 class="text-primary">
+            About
+        </h3>
+
+        <p>
+            Smart College Management System is a web-based
+            application developed to manage students, faculty,
+            courses and attendance.
+        </p>
+
+    </div>
+
 </div>
+
+
+<!-- Contact Section -->
+
+<div id="contact" class="container mt-5 mb-5">
+
+    <div class="text-center">
+
+        <h3 class="text-primary">
+            Contact
+        </h3>
+
+        <p>
+            Smart College Management System
+        </p>
+
+    </div>
+
+</div>
+
 
 <!-- Bootstrap JS -->
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
 
 </body>
 
