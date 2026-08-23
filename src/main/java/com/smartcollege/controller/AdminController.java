@@ -6,8 +6,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.smartcollege.entity.Admin;
+import com.smartcollege.entity.Student;
 import com.smartcollege.entity.User;
 import com.smartcollege.service.AdminService;
 import com.smartcollege.service.AttendanceService;
@@ -39,6 +41,7 @@ public class AdminController {
     @Autowired
     private AttendanceService attendanceService;
 
+
     @GetMapping("/login")
     public String loginPage(Model model) {
 
@@ -46,6 +49,7 @@ public class AdminController {
 
         return "login";
     }
+
 
     @PostMapping("/login")
     public String login(
@@ -60,11 +64,19 @@ public class AdminController {
 
         if (validAdmin != null) {
 
-            session.setAttribute("username", validAdmin.getUsername());
-            session.setAttribute("role", "ADMIN");
+            session.setAttribute(
+                    "username",
+                    validAdmin.getUsername()
+            );
+
+            session.setAttribute(
+                    "role",
+                    "ADMIN"
+            );
 
             return "redirect:/dashboard";
         }
+
 
         User validUser = userService.login(
                 admin.getUsername(),
@@ -73,14 +85,27 @@ public class AdminController {
 
         if (validUser != null) {
 
-            session.setAttribute("username", validUser.getUsername());
-            session.setAttribute("role", validUser.getRole());
-            session.setAttribute("userEmail", validUser.getEmail());
+            session.setAttribute(
+                    "username",
+                    validUser.getUsername()
+            );
+
+            session.setAttribute(
+                    "role",
+                    validUser.getRole()
+            );
+
+            session.setAttribute(
+                    "userEmail",
+                    validUser.getEmail()
+            );
+
 
             if ("STUDENT".equals(validUser.getRole())) {
 
                 return "redirect:/student-profile";
             }
+
 
             if ("FACULTY".equals(validUser.getRole())) {
 
@@ -88,23 +113,32 @@ public class AdminController {
             }
         }
 
+
         model.addAttribute(
                 "error",
                 "Invalid Username or Password"
         );
 
-        model.addAttribute("admin", new Admin());
+        model.addAttribute(
+                "admin",
+                new Admin()
+        );
 
         return "login";
     }
 
+
     @GetMapping("/admin-register")
     public String adminRegisterPage(Model model) {
 
-        model.addAttribute("admin", new Admin());
+        model.addAttribute(
+                "admin",
+                new Admin()
+        );
 
         return "admin-register";
     }
+
 
     @PostMapping("/saveAdmin")
     public String saveAdmin(
@@ -118,25 +152,35 @@ public class AdminController {
                 "Registration successful. Please login."
         );
 
-        model.addAttribute("admin", new Admin());
+        model.addAttribute(
+                "admin",
+                new Admin()
+        );
 
         return "login";
     }
+
 
     @GetMapping("/dashboard")
     public String dashboard(
             Model model,
             HttpSession session) {
 
-        String role = (String) session.getAttribute("role");
+        String role =
+                (String) session.getAttribute("role");
+
 
         if (role == null) {
+
             return "redirect:/login";
         }
 
+
         if ("STUDENT".equals(role)) {
+
             return "redirect:/student-profile";
         }
+
 
         model.addAttribute(
                 "totalStudents",
@@ -158,24 +202,41 @@ public class AdminController {
                 attendanceService.getTotalAttendance()
         );
 
+
         return "dashboard";
     }
+
 
     @GetMapping("/user-register")
     public String userRegisterPage(Model model) {
 
-        model.addAttribute("user", new User());
+        model.addAttribute(
+                "user",
+                new User()
+        );
 
         return "register";
     }
 
+
     @PostMapping("/registerUser")
     public String registerUser(
             @ModelAttribute User user,
+            @RequestParam String studentName,
+            @RequestParam String studentMobile,
+            @RequestParam String studentCourse,
             Model model) {
 
+
+        /*
+         * Check duplicate username
+         */
+
         User existingUser =
-                userService.findByUsername(user.getUsername());
+                userService.findByUsername(
+                        user.getUsername()
+                );
+
 
         if (existingUser != null) {
 
@@ -184,27 +245,70 @@ public class AdminController {
                     "Username already exists. Please choose another username."
             );
 
-            model.addAttribute("user", user);
+            model.addAttribute(
+                    "user",
+                    user
+            );
 
             return "register";
         }
 
+
+        /*
+         * Create User account
+         */
+
         user.setRole("STUDENT");
 
         userService.register(user);
+
+
+        /*
+         * Create Student record
+         */
+
+        Student student = new Student();
+
+        student.setName(studentName);
+
+        student.setEmail(
+                user.getEmail()
+        );
+
+        student.setMobile(studentMobile);
+
+        student.setCourse(studentCourse);
+
+        student.setPassword(
+                user.getPassword()
+        );
+
+
+        studentService.saveStudent(student);
+
+
+        /*
+         * Registration successful
+         */
 
         model.addAttribute(
                 "success",
                 "Registration successful. Please login."
         );
 
-        model.addAttribute("admin", new Admin());
+        model.addAttribute(
+                "admin",
+                new Admin()
+        );
+
 
         return "login";
     }
 
+
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public String logout(
+            HttpSession session) {
 
         session.invalidate();
 
