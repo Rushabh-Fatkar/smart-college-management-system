@@ -1,144 +1,919 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard | Smart College Management System</title>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Dashboard Styles -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            --hero-bg: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-gradient: linear-gradient(145deg, #1e3a8a 0%, #2563eb 100%);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism Navbar */
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 0.9rem !important;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .nav-link.active {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .btn-nav-logout {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #fee2e2 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-weight: 600;
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-nav-logout:hover {
+            background-color: #ef4444;
+            color: #ffffff !important;
+            border-color: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .admin-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 2.25rem 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18);
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .welcome-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: 20%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .banner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .banner-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .banner-subtitle {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.88);
+            max-width: 650px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Quick Action Buttons */
+        .quick-action-btn {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary-dark) !important;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .quick-action-btn:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            color: var(--primary-color) !important;
+        }
+
+        .quick-action-btn-outline {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .quick-action-btn-outline:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+
+        /* Section Heading */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+
+        /* Stat Cards */
+        .stat-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            height: 100%;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.5rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 18px 18px 0 0;
+        }
+
+        .stat-card-students::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+        .stat-card-faculty::before { background: linear-gradient(90deg, #8b5cf6, #6366f1); }
+        .stat-card-courses::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .stat-card-attendance::before { background: linear-gradient(90deg, #10b981, #059669); }
+
+        .stat-card-link:hover .stat-card {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .stat-icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon-students { background: rgba(37, 99, 235, 0.1); color: #2563eb; }
+        .stat-icon-faculty { background: rgba(139, 92, 246, 0.1); color: #7c3aed; }
+        .stat-icon-courses { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .stat-icon-attendance { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-footer {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .stat-footer-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            color: var(--primary-color);
+            transition: gap 0.2s ease;
+        }
+
+        .stat-card-link:hover .stat-footer-link {
+            gap: 0.6rem;
+        }
+
+        /* Module Management Cards */
+        .module-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.08);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .module-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .module-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.15rem;
+        }
+
+        .module-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        .module-desc {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-module-primary {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--primary-color);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-module-primary:hover {
+            background: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+        }
+
+        .btn-module-secondary {
+            background: #f8fafc;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-module-secondary:hover {
+            background: #f1f5f9;
+            color: var(--primary-dark);
+            border-color: #cbd5e1;
+        }
+
+        /* Quick Info Bar */
+        .info-strip {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Footer */
+        .custom-footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 2rem 0 1.75rem;
+            border-top: 1px solid #1e293b;
+            margin-top: auto;
+        }
+
+        .footer-link {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #ffffff;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-banner {
+                padding: 1.75rem 1.25rem;
+            }
+
+            .banner-title {
+                font-size: 1.45rem;
+            }
+
+            .stat-value {
+                font-size: 1.85rem;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
     <div class="container">
-
-        <a class="navbar-brand fw-bold" href="/dashboard">
-            Smart College Management System
+        <!-- Project Name & Brand -->
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-mortarboard-fill text-warning"></i>
+            <span>Smart College Management System</span>
         </a>
 
-        <button class="navbar-toggler" type="button"
+        <!-- Mobile Toggler -->
+        <button class="navbar-toggler border-0 shadow-none"
+                type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
+                data-bs-target="#dashboardNav"
+                aria-controls="dashboardNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-
-            <ul class="navbar-nav ms-auto">
-
+        <!-- Navbar Links -->
+        <div class="collapse navbar-collapse" id="dashboardNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-1 mt-3 mt-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    <a class="nav-link active" href="/dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/students">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Students</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/faculty">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Faculty</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">
+                        <i class="bi bi-book-half"></i>
+                        <span>Courses</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/attendance">
+                        <i class="bi bi-calendar-check-fill"></i>
+                        <span>Attendance</span>
+                    </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/students">Students</a>
+                <!-- User Session Pill & Logout -->
+                <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                    <div class="admin-pill">
+                        <i class="bi bi-person-circle text-warning"></i>
+                        <span th:text="${session.username != null ? session.username : 'Admin'}">Admin</span>
+                        <span class="badge bg-white text-dark rounded-pill px-2" style="font-size: 0.7rem;" th:text="${session.role != null ? session.role : 'ADMIN'}">ADMIN</span>
+                    </div>
+                    <a class="btn btn-nav-logout" href="/logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </a>
                 </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/faculty">Faculty</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/courses">Courses</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/attendance">Attendance</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-warning" href="/logout">Logout</a>
-                </li>
-
             </ul>
-
         </div>
-
     </div>
 </nav>
 
-<div class="container mt-4">
+<!-- Main Content Container -->
+<main class="container my-4 flex-grow-1">
 
-    <h2 class="mb-2">Welcome Admin</h2>
+    <!-- Welcome Hero Banner -->
+    <section class="welcome-banner">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="banner-badge">
+                    <i class="bi bi-shield-check"></i>
+                    <span>College Administration Panel</span>
+                </div>
 
-    <p class="text-muted mb-4">
-        Welcome to Smart College Management System Dashboard.
-        Manage Students, Faculty, Courses and Attendance from one place.
-    </p>
+                <h1 class="banner-title">
+                    Welcome back, <span th:text="${session.username != null ? session.username : 'Admin'}">Admin</span>!
+                </h1>
 
-    <div class="mb-4">
+                <p class="banner-subtitle">
+                    Welcome to the Smart College Management System Dashboard. Manage students, faculty members, academic courses, and attendance records from one centralized control center.
+                </p>
 
-        <a href="/register" class="btn btn-primary me-2 mb-2">
-            Add Student
-        </a>
+                <!-- Quick Action Buttons -->
+                <div class="d-flex flex-wrap gap-2 pt-1">
+                    <a href="/register" class="quick-action-btn">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Add Student</span>
+                    </a>
+                    <a href="/faculty-register" class="quick-action-btn">
+                        <i class="bi bi-person-badge-fill"></i>
+                        <span>Add Faculty</span>
+                    </a>
+                    <a href="/course-register" class="quick-action-btn">
+                        <i class="bi bi-journal-plus"></i>
+                        <span>Add Course</span>
+                    </a>
+                    <a href="/attendance-register" class="quick-action-btn">
+                        <i class="bi bi-calendar-plus-fill"></i>
+                        <span>Add Attendance</span>
+                    </a>
+                </div>
+            </div>
 
-        <a href="/faculty-register" class="btn btn-info me-2 mb-2">
-            Add Faculty
-        </a>
+            <!-- Current Date & System Status Badge -->
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <div class="d-inline-flex flex-column align-items-lg-end text-start text-lg-end">
+                    <div class="quick-action-btn-outline mb-2">
+                        <i class="bi bi-calendar-event"></i>
+                        <span id="currentDate">Today</span>
+                    </div>
+                    <small class="text-white-50">
+                        <i class="bi bi-check-circle-fill text-success me-1"></i> System Status: Operational
+                    </small>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <a href="/course-register" class="btn btn-dark me-2 mb-2">
-            Add Course
-        </a>
+    <!-- Key Metrics / Statistics Cards -->
+    <section class="mb-4">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-bar-chart-line-fill text-primary"></i>
+                <span>Key Statistics Overview</span>
+            </h2>
+        </div>
 
-        <a href="/attendance-register" class="btn btn-success mb-2">
-            Add Attendance
-        </a>
+        <div class="row g-3 g-lg-4">
+            <!-- Total Students Card -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="/students" class="stat-card-link">
+                    <div class="stat-card stat-card-students">
+                        <div>
+                            <div class="stat-icon-box stat-icon-students">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div class="stat-label">Total Students</div>
+                            <div class="stat-value" th:text="${totalStudents}">0</div>
+                        </div>
+                        <div class="stat-footer">
+                            <span class="text-muted small">Enrolled Students</span>
+                            <span class="stat-footer-link">
+                                Manage <i class="bi bi-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
 
+            <!-- Total Faculty Card -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="/faculty" class="stat-card-link">
+                    <div class="stat-card stat-card-faculty">
+                        <div>
+                            <div class="stat-icon-box stat-icon-faculty">
+                                <i class="bi bi-person-workspace"></i>
+                            </div>
+                            <div class="stat-label">Total Faculty</div>
+                            <div class="stat-value" th:text="${totalFaculty}">0</div>
+                        </div>
+                        <div class="stat-footer">
+                            <span class="text-muted small">Academic Staff</span>
+                            <span class="stat-footer-link">
+                                Manage <i class="bi bi-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Total Courses Card -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="/courses" class="stat-card-link">
+                    <div class="stat-card stat-card-courses">
+                        <div>
+                            <div class="stat-icon-box stat-icon-courses">
+                                <i class="bi bi-book-half"></i>
+                            </div>
+                            <div class="stat-label">Total Courses</div>
+                            <div class="stat-value" th:text="${totalCourses}">0</div>
+                        </div>
+                        <div class="stat-footer">
+                            <span class="text-muted small">Offered Programs</span>
+                            <span class="stat-footer-link">
+                                Manage <i class="bi bi-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Total Attendance Card -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="/attendance" class="stat-card-link">
+                    <div class="stat-card stat-card-attendance">
+                        <div>
+                            <div class="stat-icon-box stat-icon-attendance">
+                                <i class="bi bi-calendar-check-fill"></i>
+                            </div>
+                            <div class="stat-label">Total Attendance</div>
+                            <div class="stat-value" th:text="${totalAttendance}">0</div>
+                        </div>
+                        <div class="stat-footer">
+                            <span class="text-muted small">Recorded Entries</span>
+                            <span class="stat-footer-link">
+                                Manage <i class="bi bi-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Modules Management Section -->
+    <section class="mb-4">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-grid-fill text-primary"></i>
+                <span>Management Modules</span>
+            </h2>
+            <span class="text-muted small">Quick access to records and operations</span>
+        </div>
+
+        <div class="row g-3 g-lg-4">
+            <!-- Student Module -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <div class="module-icon stat-icon-students">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-title">Students</h3>
+                                <p class="module-subtitle">Enrollment & Records</p>
+                            </div>
+                        </div>
+                        <p class="module-desc">
+                            Manage student profiles, view contact details, inspect individual attendance percentages, and maintain student records.
+                        </p>
+                    </div>
+                    <div class="module-actions">
+                        <a href="/students" class="btn-module-primary">
+                            <i class="bi bi-list-ul"></i> View All
+                        </a>
+                        <a href="/register" class="btn-module-secondary">
+                            <i class="bi bi-plus-lg"></i> Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty Module -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <div class="module-icon stat-icon-faculty">
+                                <i class="bi bi-person-workspace"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-title">Faculty</h3>
+                                <p class="module-subtitle">Staff Directory</p>
+                            </div>
+                        </div>
+                        <p class="module-desc">
+                            Maintain faculty profiles, assign departments and designations, and manage faculty login credentials.
+                        </p>
+                    </div>
+                    <div class="module-actions">
+                        <a href="/faculty" class="btn-module-primary">
+                            <i class="bi bi-list-ul"></i> View All
+                        </a>
+                        <a href="/faculty-register" class="btn-module-secondary">
+                            <i class="bi bi-plus-lg"></i> Add Faculty
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Module -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <div class="module-icon stat-icon-courses">
+                                <i class="bi bi-book-half"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-title">Courses</h3>
+                                <p class="module-subtitle">Curriculum Catalog</p>
+                            </div>
+                        </div>
+                        <p class="module-desc">
+                            Organize course offerings, course codes, program durations, and academic fees structure across departments.
+                        </p>
+                    </div>
+                    <div class="module-actions">
+                        <a href="/courses" class="btn-module-primary">
+                            <i class="bi bi-list-ul"></i> View All
+                        </a>
+                        <a href="/course-register" class="btn-module-secondary">
+                            <i class="bi bi-plus-lg"></i> Add Course
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Module -->
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <div class="module-icon stat-icon-attendance">
+                                <i class="bi bi-calendar-check-fill"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-title">Attendance</h3>
+                                <p class="module-subtitle">Daily Tracking</p>
+                            </div>
+                        </div>
+                        <p class="module-desc">
+                            Record daily attendance for students, track attendance statistics, and identify low attendance percentages.
+                        </p>
+                    </div>
+                    <div class="module-actions">
+                        <a href="/attendance" class="btn-module-primary">
+                            <i class="bi bi-list-ul"></i> View All
+                        </a>
+                        <a href="/attendance-register" class="btn-module-secondary">
+                            <i class="bi bi-plus-lg"></i> Mark Entry
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Quick Links & Info Bar -->
+    <section class="info-strip">
+        <div class="row align-items-center gy-3">
+            <div class="col-md-7">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="feature-icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-lock fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Smart College Administrative Center</h5>
+                        <p class="text-muted small mb-0">
+                            Logged in with full administrator permissions. All system data changes are committed securely to the database.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <div class="d-inline-flex flex-wrap gap-2">
+                    <a href="/" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                        <i class="bi bi-house-door me-1"></i> Public Home
+                    </a>
+                    <a href="/student-attendance" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-pie-chart me-1"></i> Attendance Overview
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="custom-footer">
+    <div class="container">
+        <div class="row align-items-center gy-3">
+            <div class="col-md-6 text-center text-md-start">
+                <h6 class="text-white fw-bold mb-1">
+                    <i class="bi bi-mortarboard-fill text-warning me-1"></i> Smart College Management System
+                </h6>
+                <small class="text-muted">Industrial Training Project &bull; Administrator Dashboard</small>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <div class="d-flex justify-content-center justify-content-md-end gap-3 small">
+                    <a href="/dashboard" class="footer-link">Dashboard</a>
+                    <a href="/students" class="footer-link">Students</a>
+                    <a href="/faculty" class="footer-link">Faculty</a>
+                    <a href="/courses" class="footer-link">Courses</a>
+                    <a href="/attendance" class="footer-link">Attendance</a>
+                    <a href="/logout" class="footer-link text-warning">Logout</a>
+                </div>
+            </div>
+        </div>
     </div>
+</footer>
 
-    <div class="row">
-
-        <div class="col-md-3 mb-3">
-            <a href="/students" class="text-decoration-none text-dark">
-                <div class="card shadow text-center h-100">
-                    <div class="card-body">
-                        <h5>Total Students</h5>
-                        <h2 th:text="${totalStudents}">0</h2>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <a href="/faculty" class="text-decoration-none text-dark">
-                <div class="card shadow text-center h-100">
-                    <div class="card-body">
-                        <h5>Total Faculty</h5>
-                        <h2 th:text="${totalFaculty}">0</h2>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <a href="/courses" class="text-decoration-none text-dark">
-                <div class="card shadow text-center h-100">
-                    <div class="card-body">
-                        <h5>Total Courses</h5>
-                        <h2 th:text="${totalCourses}">0</h2>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-md-3 mb-3">
-            <a href="/attendance" class="text-decoration-none text-dark">
-                <div class="card shadow text-center h-100">
-                    <div class="card-body">
-                        <h5>Total Attendance</h5>
-                        <h2 th:text="${totalAttendance}">0</h2>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-    </div>
-
-</div>
-
+<!-- Bootstrap 5.3.3 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Date Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dateElement = document.getElementById('currentDate');
+        if (dateElement) {
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            const today = new Date();
+            dateElement.textContent = today.toLocaleDateString('en-US', options);
+        }
+    });
+</script>
 
 </body>
 </html>

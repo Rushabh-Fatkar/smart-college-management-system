@@ -21,16 +21,24 @@ public class StudentService {
     public List<Student> getAllStudents() {
         return studentRepository.findAll();
     }
+
     public Student getStudentById(Long id) {
         return studentRepository.findById(id).orElse(null);
     }
+
     public void deleteStudent(Long id) {
         studentRepository.deleteById(id);
     }
+
     public long getTotalStudents() {
         return studentRepository.count();
     }
+
     public Student findByName(String name) {
         return studentRepository.findByName(name);
+    }
+
+    public Student findByEmail(String email) {
+        return studentRepository.findByEmail(email);
     }
 }

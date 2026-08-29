@@ -1,73 +1,365 @@
 <!DOCTYPE html>
-
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
 
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Login | Smart College Management System</title>
 
     <!-- Bootstrap CSS -->
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Existing CSS -->
     <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 35%),
+                linear-gradient(135deg, #f8fafc, #eef2ff);
+        }
+
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 980px;
+            border: none;
+            border-radius: 24px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 25px 70px rgba(15, 23, 42, 0.16);
+        }
+
+        .login-left {
+            padding: 55px 45px;
+            background: linear-gradient(145deg, #312e81, #4338ca, #2563eb);
+            color: white;
+            min-height: 580px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 32px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-left h1 {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 18px;
+        }
+
+        .login-left p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .portal-points {
+            margin-top: 30px;
+        }
+
+        .portal-point {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .portal-point i {
+            font-size: 20px;
+        }
+
+        .login-right {
+            padding: 55px 45px;
+            background: white;
+        }
+
+        .login-title {
+            font-size: 30px;
+            font-weight: 750;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .input-group-text {
+            background: #f8fafc;
+            border: 1px solid #dbe2ea;
+            color: #4f46e5;
+        }
+
+        .form-control {
+            min-height: 50px;
+            border: 1px solid #dbe2ea;
+            border-radius: 0 10px 10px 0;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.12);
+        }
+
+        .input-group .input-group-text {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .password-input {
+            border-radius: 0 !important;
+        }
+
+        .login-btn {
+            min-height: 52px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            background: linear-gradient(135deg, #4338ca, #2563eb);
+            transition: all 0.25s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(67, 56, 202, 0.25);
+        }
+
+        .register-link {
+            color: #4338ca;
+            font-weight: 700;
+        }
+
+        .register-link:hover {
+            color: #2563eb;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 12px;
+        }
+
+        .show-password {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .back-home:hover {
+            color: #4338ca;
+        }
+
+        @media (max-width: 767px) {
+
+            .login-card {
+                border-radius: 18px;
+            }
+
+            .login-left {
+                min-height: auto;
+                padding: 40px 30px;
+            }
+
+            .login-left h1 {
+                font-size: 28px;
+            }
+
+            .login-right {
+                padding: 40px 25px;
+            }
+
+            .login-title {
+                font-size: 26px;
+            }
+        }
+
+    </style>
 
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
+<div class="login-wrapper">
 
-    <div class="row justify-content-center">
+    <div class="login-card">
 
-        <div class="col-md-8">
+        <div class="row g-0">
 
-            <div class="card shadow">
+            <!-- LEFT SIDE -->
 
-                <div class="card-header bg-primary text-white text-center py-4">
+            <div class="col-lg-6">
 
-                    <h4 class="fw-bold mb-2">
-                        Smart College Management System
-                    </h4>
+                <div class="login-left">
 
-                    <p class="mb-0">
-                        Student • Faculty • Admin Login Portal
+                    <div class="brand-icon">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+
+                    <h1>
+                        Smart College<br>
+                        Management System
+                    </h1>
+
+                    <p>
+                        A simple and secure portal for managing
+                        students, faculty, courses and attendance.
                     </p>
+
+                    <div class="portal-points">
+
+                        <div class="portal-point">
+                            <i class="bi bi-person-check-fill"></i>
+                            <span>Student Management</span>
+                        </div>
+
+                        <div class="portal-point">
+                            <i class="bi bi-person-workspace"></i>
+                            <span>Faculty Management</span>
+                        </div>
+
+                        <div class="portal-point">
+                            <i class="bi bi-book-fill"></i>
+                            <span>Course Management</span>
+                        </div>
+
+                        <div class="portal-point">
+                            <i class="bi bi-bar-chart-fill"></i>
+                            <span>Attendance Tracking</span>
+                        </div>
+
+                    </div>
 
                 </div>
 
-                <div class="card-body">
+            </div>
 
-                    <div th:if="${error}" class="alert alert-danger">
+
+            <!-- RIGHT SIDE -->
+
+            <div class="col-lg-6">
+
+                <div class="login-right">
+
+                    <a href="/" class="back-home">
+                        <i class="bi bi-arrow-left"></i>
+                        Back to Home
+                    </a>
+
+                    <h2 class="login-title">
+                        Welcome Back
+                    </h2>
+
+                    <p class="login-subtitle">
+                        Login to access your college portal.
+                    </p>
+
+
+                    <!-- Error -->
+
+                    <div th:if="${error}"
+                         class="alert alert-danger">
+
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+
                         <span th:text="${error}"></span>
+
                     </div>
 
-                    <div th:if="${success}" class="alert alert-success">
+
+                    <!-- Success -->
+
+                    <div th:if="${success}"
+                         class="alert alert-success">
+
+                        <i class="bi bi-check-circle-fill me-2"></i>
+
                         <span th:text="${success}"></span>
+
                     </div>
+
+
+                    <!-- LOGIN FORM -->
 
                     <form th:action="@{/login}"
                           th:object="${admin}"
                           method="post">
 
-                        <div class="mb-3">
+
+                        <!-- Username -->
+
+                        <div class="mb-4">
 
                             <label class="form-label">
                                 Username
                             </label>
 
-                            <input type="text"
-                                   class="form-control"
-                                   placeholder="Enter Username"
-                                   th:field="*{username}"
-                                   required>
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Enter Username"
+                                       th:field="*{username}"
+                                       required>
+
+                            </div>
 
                         </div>
+
+
+                        <!-- Password -->
 
                         <div class="mb-3">
 
@@ -75,20 +367,29 @@
                                 Password
                             </label>
 
-                            <input type="password"
-                                   class="form-control"
-                                   id="password"
-                                   placeholder="Enter Password"
-                                   th:field="*{password}"
-                                   required>
+                            <div class="input-group">
 
-                            <div class="form-check mt-2">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+
+                                <input type="password"
+                                       class="form-control password-input"
+                                       id="password"
+                                       placeholder="Enter Password"
+                                       th:field="*{password}"
+                                       required>
+
+                            </div>
+
+
+                            <div class="form-check mt-3">
 
                                 <input class="form-check-input"
                                        type="checkbox"
                                        id="showPassword">
 
-                                <label class="form-check-label"
+                                <label class="form-check-label show-password"
                                        for="showPassword">
 
                                     Show Password
@@ -99,19 +400,29 @@
 
                         </div>
 
+
+                        <!-- Login Button -->
+
                         <button type="submit"
-                                class="btn btn-primary w-100">
+                                class="btn btn-primary login-btn w-100 mt-3">
+
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
 
                             Login
 
                         </button>
 
-                        <div class="text-center mt-3">
 
-                            <span>Don't have an account?</span>
+                        <!-- Register -->
+
+                        <div class="text-center mt-4">
+
+                            <span class="text-secondary">
+                                Don't have an account?
+                            </span>
 
                             <a href="/user-register"
-                               class="text-decoration-none">
+                               class="text-decoration-none register-link ms-1">
 
                                 Register Now
 
@@ -131,25 +442,30 @@
 
 </div>
 
+
+<!-- Password Toggle -->
+
 <script>
 
-const password = document.getElementById("password");
+    const password =
+        document.getElementById("password");
 
-const showPassword = document.getElementById("showPassword");
+    const showPassword =
+        document.getElementById("showPassword");
 
-showPassword.addEventListener("change", function () {
+    showPassword.addEventListener("change", function () {
 
-    if (this.checked) {
+        if (this.checked) {
 
-        password.type = "text";
+            password.type = "text";
 
-    } else {
+        } else {
 
-        password.type = "password";
+            password.type = "password";
 
-    }
+        }
 
-});
+    });
 
 </script>
 

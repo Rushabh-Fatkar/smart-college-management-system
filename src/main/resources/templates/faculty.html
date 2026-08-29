@@ -1,162 +1,990 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Directory | Smart College Management System</title>
 
-    <title>Faculty List</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Modern Stylesheet -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-gradient: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            --hero-bg: linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --table-header-bg: #f8fafc;
+            --row-hover-bg: #f8fbff;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism Navbar */
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 0.9rem !important;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .nav-link.active {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .btn-nav-logout {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #fee2e2 !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-weight: 600;
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn-nav-logout:hover {
+            background-color: #ef4444;
+            color: #ffffff !important;
+            border-color: #ef4444;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .admin-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Page Hero Banner */
+        .page-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 60%, #3b82f6 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            padding: 2.25rem 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18);
+        }
+
+        .page-banner::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .page-banner::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: 20%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .banner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            padding: 0.35rem 0.9rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .banner-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.4rem;
+        }
+
+        .banner-subtitle {
+            font-size: 0.975rem;
+            color: rgba(255, 255, 255, 0.88);
+            max-width: 650px;
+            margin-bottom: 0;
+        }
+
+        /* Banner Quick Action Buttons */
+        .btn-banner-action {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--primary-dark) !important;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-banner-action:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            color: var(--primary-color) !important;
+        }
+
+        .btn-banner-outline {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-banner-outline:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #ffffff;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+        }
+
+        /* Main Management Card */
+        .management-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Search & Filter Toolbar */
+        .table-toolbar {
+            padding: 1.5rem 1.75rem;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .search-icon-inside {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .custom-search-input {
+            padding-left: 2.85rem !important;
+            padding-right: 2.5rem !important;
+            min-height: 48px;
+            border: 1px solid #d8e2ee;
+            border-radius: 12px;
+            font-size: 0.925rem;
+            font-weight: 500;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .custom-search-input:focus {
+            background-color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .search-clear-btn:hover {
+            color: #475569;
+        }
+
+        .stats-badge-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 0.45rem 0.9rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Modern Faculty Table */
+        .custom-faculty-table {
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .custom-faculty-table thead th {
+            background-color: var(--table-header-bg);
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .custom-faculty-table tbody td {
+            padding: 1.1rem 1.25rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            color: #1e293b;
+            transition: background-color 0.15s ease;
+        }
+
+        .custom-faculty-table tbody tr:hover td {
+            background-color: var(--row-hover-bg);
+        }
+
+        .custom-faculty-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Faculty Identity Components */
+        .faculty-id-pill {
+            display: inline-block;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #7c3aed;
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+        }
+
+        .faculty-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+        }
+
+        .faculty-name-text {
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+
+        .department-badge {
+            background: #f5f3ff;
+            color: #6d28d9;
+            border: 1px solid #ddd6fe;
+            font-weight: 600;
+            font-size: 0.825rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .contact-info-link {
+            color: #475569;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: color 0.15s ease;
+            font-size: 0.875rem;
+        }
+
+        .contact-info-link:hover {
+            color: var(--primary-color);
+        }
+
+        .contact-icon {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        /* Action Buttons */
+        .action-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: nowrap;
+        }
+
+        .btn-edit-faculty {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            font-weight: 600;
+            font-size: 0.825rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-edit-faculty:hover {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-delete-faculty {
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            font-weight: 600;
+            font-size: 0.825rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn-delete-faculty:hover {
+            background-color: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2);
+        }
+
+        .view-only-badge {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        /* Table Card Footer / Summary Strip */
+        .table-summary-footer {
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            padding: 1.25rem 1.75rem;
+        }
+
+        /* Empty State */
+        .empty-state-container {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #f5f3ff;
+            color: #7c3aed;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Footer */
+        .custom-footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 2rem 0 1.75rem;
+            border-top: 1px solid #1e293b;
+            margin-top: auto;
+        }
+
+        .footer-link {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #ffffff;
+        }
+
+        /* Responsive Tweaks */
+        @media (max-width: 991.98px) {
+            .page-banner {
+                padding: 1.75rem 1.5rem;
+            }
+
+            .banner-title {
+                font-size: 1.55rem;
+            }
+
+            .table-toolbar {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .page-banner {
+                padding: 1.5rem 1.25rem;
+            }
+
+            .banner-title {
+                font-size: 1.35rem;
+            }
+
+            .custom-faculty-table thead th,
+            .custom-faculty-table tbody td {
+                padding: 0.85rem 1rem;
+            }
+
+            .action-btn-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.35rem;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
     <div class="container">
-
-        <a class="navbar-brand fw-bold" href="/dashboard">
-            Smart College Management System
+        <!-- Project Name & Brand -->
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-mortarboard-fill text-warning"></i>
+            <span>Smart College Management System</span>
         </a>
 
-        <button class="navbar-toggler" type="button"
+        <!-- Mobile Toggler -->
+        <button class="navbar-toggler border-0 shadow-none"
+                type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-
+                data-bs-target="#facultyNav"
+                aria-controls="facultyNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-
-            <ul class="navbar-nav ms-auto">
-
+        <!-- Navbar Links -->
+        <div class="collapse navbar-collapse" id="facultyNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-1 mt-3 mt-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                    <a class="nav-link" href="/dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link" href="/students">Students</a>
+                    <a class="nav-link" href="/students">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Students</span>
+                    </a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link active" href="/faculty">Faculty</a>
+                    <a class="nav-link active" href="/faculty">
+                        <i class="bi bi-person-workspace"></i>
+                        <span>Faculty</span>
+                    </a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link" href="/courses">Courses</a>
+                    <a class="nav-link" href="/courses">
+                        <i class="bi bi-book-half"></i>
+                        <span>Courses</span>
+                    </a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link" href="/attendance">Attendance</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-warning" href="/logout">
-                        Logout
+                    <a class="nav-link" href="/attendance">
+                        <i class="bi bi-calendar-check-fill"></i>
+                        <span>Attendance</span>
                     </a>
                 </li>
 
+                <!-- User Session Pill & Logout -->
+                <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                    <div class="admin-pill">
+                        <i class="bi bi-person-circle text-warning"></i>
+                        <span th:text="${session.username != null ? session.username : 'User'}">User</span>
+                        <span class="badge bg-white text-dark rounded-pill px-2" style="font-size: 0.7rem;" th:text="${session.role != null ? session.role : 'STUDENT'}">STUDENT</span>
+                    </div>
+                    <a class="btn btn-nav-logout" href="/logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
             </ul>
+        </div>
+    </div>
+</nav>
 
+<!-- Main Container -->
+<main class="container my-4 flex-grow-1">
+
+    <!-- Page Header Banner -->
+    <section class="page-banner">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="banner-badge">
+                    <i class="bi bi-person-workspace"></i>
+                    <span>Academic Staff & Faculty Directory</span>
+                </div>
+
+                <h1 class="banner-title">Faculty Directory</h1>
+
+                <p class="banner-subtitle">
+                    Manage faculty profiles, department assignments, contact information, and academic staff records from one unified directory.
+                </p>
+            </div>
+
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="d-inline-flex flex-wrap gap-2 justify-content-lg-end">
+                    <a th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
+                       href="/faculty-register"
+                       class="btn-banner-action">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Add Faculty</span>
+                    </a>
+                    <a href="/dashboard" class="btn-banner-outline">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Faculty Management Table Card -->
+    <div class="management-card">
+
+        <!-- Toolbar Strip: Search Bar and Action Controls -->
+        <div class="table-toolbar">
+            <div class="row align-items-center g-3">
+                <div class="col-md-6 col-lg-5">
+                    <div class="search-box-wrapper">
+                        <i class="bi bi-search search-icon-inside"></i>
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control custom-search-input"
+                               placeholder="Search faculty by name or department..."
+                               autocomplete="off">
+                        <button type="button"
+                                id="clearSearchBtn"
+                                class="search-clear-btn"
+                                aria-label="Clear Search"
+                                title="Clear Search">
+                            <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-7 text-md-end">
+                    <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                        <span class="stats-badge-count">
+                            <i class="bi bi-person-workspace text-primary"></i>
+                            <span id="visibleCount" th:text="${#lists.size(facultyList)}">0</span>
+                            <span class="text-muted">of</span>
+                            <span th:text="${#lists.size(facultyList)}">0</span>
+                            <span>Faculty</span>
+                        </span>
+
+                        <a th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
+                           href="/faculty-register"
+                           class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>New Faculty</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View with Responsive Wrapper -->
+        <div class="table-responsive">
+            <table class="table custom-faculty-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Faculty Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Department</th>
+                        <th style="width: 180px;" class="text-center">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="facultyTableBody">
+
+                    <!-- Dynamic Row Loop -->
+<tr th:each="faculty, stat : ${facultyList}">
+                        <!-- ID -->
+                        <td>
+<span class="faculty-id-pill" th:text="${stat.count}">1</span>
+                        </td>
+
+                        <!-- Name with Initial Avatar -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="faculty-avatar"
+                                     th:text="${faculty.name != null and #strings.length(faculty.name) > 0 ? #strings.substring(faculty.name, 0, 1).toUpperCase() : 'F'}">
+                                    F
+                                </div>
+                                <div>
+                                    <div class="faculty-name-text" th:text="${faculty.name}">Faculty Name</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Email -->
+                        <td>
+                            <a th:href="'mailto:' + ${faculty.email}" class="contact-info-link" title="Send Email">
+                                <i class="bi bi-envelope-fill contact-icon"></i>
+                                <span th:text="${faculty.email}">faculty@college.edu</span>
+                            </a>
+                        </td>
+
+                        <!-- Mobile -->
+                        <td>
+                            <a th:href="'tel:' + ${faculty.mobile}" class="contact-info-link" title="Call Faculty">
+                                <i class="bi bi-telephone-fill contact-icon"></i>
+                                <span th:text="${faculty.mobile}">+1 234 567 8900</span>
+                            </a>
+                        </td>
+
+                        <!-- Department -->
+                        <td>
+                            <span class="department-badge">
+                                <i class="bi bi-building-fill"></i>
+                                <span th:text="${faculty.department}">Department</span>
+                            </span>
+                        </td>
+
+                        <!-- Action Controls -->
+                        <td class="text-center">
+
+                            <!-- Admin & Faculty Action Buttons -->
+                            <div th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
+                                 class="action-btn-group justify-content-center">
+
+                                <a th:href="@{/editFaculty/{id}(id=${faculty.id})}"
+                                   class="btn-edit-faculty"
+                                   title="Edit Faculty Details">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span>Edit</span>
+                                </a>
+
+                                <a th:href="@{/deleteFaculty/{id}(id=${faculty.id})}"
+                                   class="btn-delete-faculty"
+                                   onclick="return confirm('Are you sure you want to delete this faculty?')"
+                                   title="Delete Faculty Record">
+                                    <i class="bi bi-trash3-fill"></i>
+                                    <span>Delete</span>
+                                </a>
+
+                            </div>
+
+                            <!-- Student Role: View Only Badge -->
+                            <span th:if="${session.role == 'STUDENT'}"
+                                  class="view-only-badge">
+                                <i class="bi bi-eye-fill"></i>
+                                <span>View Only</span>
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    <!-- No Search Results Row (Dynamic JavaScript Toggle) -->
+                    <tr id="noSearchRow" style="display: none;">
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state-container">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-search"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-1">No Matching Faculty Found</h5>
+                                <p class="text-muted small mb-3">No faculty records matched your search query. Try checking spelling or searching a different name/department.</p>
+                                <button type="button" id="resetSearchBtn" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Search
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Empty List (When Database Has No Faculty) -->
+                    <tr th:if="${#lists.isEmpty(facultyList)}">
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state-container">
+                                <div class="empty-state-icon">
+                                    <i class="bi bi-person-workspace"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-1">No Faculty Members Registered Yet</h5>
+                                <p class="text-muted small mb-3">There are currently no faculty members in the directory. Add faculty profiles to organize academic staff.</p>
+                                <a th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
+                                   href="/faculty-register"
+                                   class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-person-plus-fill me-1"></i> Add First Faculty
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Summary Strip -->
+        <div class="table-summary-footer">
+            <div class="row align-items-center gy-2">
+                <div class="col-md-6">
+                    <span class="text-muted small">
+                        <i class="bi bi-shield-check text-success me-1"></i> Verified Academic Faculty Records
+                    </span>
+                </div>
+
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted small">
+                        Total Registered Staff: <strong class="text-dark" th:text="${#lists.size(facultyList)}">0</strong>
+                    </span>
+                </div>
+            </div>
         </div>
 
     </div>
 
-</nav>
+</main>
 
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h2>Faculty List</h2>
-
-        <a href="/faculty-register"
-           class="btn btn-primary"
-           th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}">
-
-            Add Faculty
-
-        </a>
-
+<!-- Footer -->
+<footer class="custom-footer">
+    <div class="container">
+        <div class="row align-items-center gy-3">
+            <div class="col-md-6 text-center text-md-start">
+                <h6 class="text-white fw-bold mb-1">
+                    <i class="bi bi-mortarboard-fill text-warning me-1"></i> Smart College Management System
+                </h6>
+                <small class="text-muted">Industrial Training Project &bull; Faculty Directory</small>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <div class="d-flex justify-content-center justify-content-md-end gap-3 small">
+                    <a href="/dashboard" class="footer-link">Dashboard</a>
+                    <a href="/students" class="footer-link">Students</a>
+                    <a href="/faculty" class="footer-link text-white fw-semibold">Faculty</a>
+                    <a href="/courses" class="footer-link">Courses</a>
+                    <a href="/attendance" class="footer-link">Attendance</a>
+                    <a href="/logout" class="footer-link text-warning">Logout</a>
+                </div>
+            </div>
+        </div>
     </div>
+</footer>
 
-    <table class="table table-bordered table-striped table-hover shadow">
+<!-- Search Filter JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("searchInput");
+        const clearSearchBtn = document.getElementById("clearSearchBtn");
+        const resetSearchBtn = document.getElementById("resetSearchBtn");
+        const noSearchRow = document.getElementById("noSearchRow");
+        const visibleCountSpan = document.getElementById("visibleCount");
 
-        <thead class="table-dark">
+        function filterFaculty() {
+            const filter = searchInput.value.toLowerCase().trim();
+            const rows = document.querySelectorAll("#facultyTableBody tr:not(#noSearchRow)");
+            let visibleCount = 0;
+            let totalRows = 0;
 
-            <tr>
+            rows.forEach(function (row) {
+                // Ignore the empty database list row if present
+                if (row.querySelector('.empty-state-container')) {
+                    return;
+                }
+                totalRows++;
 
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Mobile</th>
-                <th>Department</th>
-                <th width="180">Action</th>
+                // Search by Name (cell 1) or Department (cell 4)
+                const nameCell = row.cells[1];
+                const deptCell = row.cells[4];
+                const nameText = nameCell ? nameCell.textContent.toLowerCase() : "";
+                const deptText = deptCell ? deptCell.textContent.toLowerCase() : "";
 
-            </tr>
+                if (nameText.includes(filter) || deptText.includes(filter)) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
 
-        </thead>
+            // Toggle clear button
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = filter.length > 0 ? "inline-flex" : "none";
+            }
 
-        <tbody>
+            // Update visible counter
+            if (visibleCountSpan && totalRows > 0) {
+                visibleCountSpan.textContent = visibleCount;
+            }
 
-            <tr th:each="faculty : ${facultyList}">
+            // Toggle "No Matching Faculty Found" empty row
+            if (noSearchRow) {
+                if (totalRows > 0 && visibleCount === 0) {
+                    noSearchRow.style.display = "";
+                } else {
+                    noSearchRow.style.display = "none";
+                }
+            }
+        }
 
-                <td th:text="${faculty.id}"></td>
+        // Event Listeners for Search Input
+        if (searchInput) {
+            searchInput.addEventListener("keyup", filterFaculty);
+            searchInput.addEventListener("input", filterFaculty);
+        }
 
-                <td th:text="${faculty.name}"></td>
+        // Clear button handler
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener("click", function () {
+                searchInput.value = "";
+                filterFaculty();
+                searchInput.focus();
+            });
+        }
 
-                <td th:text="${faculty.email}"></td>
-
-                <td th:text="${faculty.mobile}"></td>
-
-                <td th:text="${faculty.department}"></td>
-
-                <td>
-
-                    <div th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}">
-
-                        <a th:href="@{/editFaculty/{id}(id=${faculty.id})}"
-                           class="btn btn-warning btn-sm">
-
-                            Edit
-
-                        </a>
-
-                        <a th:href="@{/deleteFaculty/{id}(id=${faculty.id})}"
-                           class="btn btn-danger btn-sm"
-                           onclick="return confirm('Are you sure you want to delete this faculty?')">
-
-                            Delete
-
-                        </a>
-
-                    </div>
-
-                    <span th:if="${session.role == 'STUDENT'}"
-                          class="text-muted">
-
-                        View Only
-
-                    </span>
-
-                </td>
-
-            </tr>
-
-        </tbody>
-
-    </table>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+        // Reset button in empty state
+        if (resetSearchBtn) {
+            resetSearchBtn.addEventListener("click", function () {
+                searchInput.value = "";
+                filterFaculty();
+                searchInput.focus();
+            });
+        }
+    });
 </script>
+
+<!-- Bootstrap 5.3.3 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 

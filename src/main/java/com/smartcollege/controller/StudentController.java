@@ -166,6 +166,7 @@ public class StudentController {
 
     @GetMapping("/student-profile")
     public String studentProfile(
+            Model model,
             HttpSession session) {
 
         String role =
@@ -174,6 +175,30 @@ public class StudentController {
         if (!"STUDENT".equals(role)) {
             return "redirect:/dashboard";
         }
+
+        String email =
+                (String) session.getAttribute("userEmail");
+
+        if (email == null) {
+            return "redirect:/login";
+        }
+
+        Student student =
+                studentService.findByEmail(email);
+
+        if (student == null) {
+            model.addAttribute(
+                    "error",
+                    "Student profile not found."
+            );
+
+            return "student-profile";
+        }
+
+        model.addAttribute(
+                "student",
+                student
+        );
 
         return "student-profile";
     }
