@@ -169,36 +169,26 @@ public class StudentController {
             Model model,
             HttpSession session) {
 
-        String role =
-                (String) session.getAttribute("role");
+        String role = (String) session.getAttribute("role");
 
         if (!"STUDENT".equals(role)) {
             return "redirect:/dashboard";
         }
 
-        String email =
-                (String) session.getAttribute("userEmail");
+        String email = (String) session.getAttribute("userEmail");
 
-        if (email == null) {
+        if (email == null || email.trim().isEmpty()) {
             return "redirect:/login";
         }
 
-        Student student =
-                studentService.findByEmail(email);
+        Student student = studentService.findByEmail(email);
 
         if (student == null) {
-            model.addAttribute(
-                    "error",
-                    "Student profile not found."
-            );
-
+            model.addAttribute("studentNotFound", true);
             return "student-profile";
         }
 
-        model.addAttribute(
-                "student",
-                student
-        );
+        model.addAttribute("student", student);
 
         return "student-profile";
     }

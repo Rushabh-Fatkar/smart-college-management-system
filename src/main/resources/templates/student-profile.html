@@ -185,7 +185,7 @@
                 <div class="welcome-section">
 
                     <h5>
-                        Welcome, <span th:text="${student.name}">Student</span> 👋
+Welcome, <span th:text="${student != null ? student.name : 'Student'}">Student</span> 👋
                     </h5>
 
                     <p class="text-muted mb-0">
@@ -219,22 +219,22 @@
 
                                     <p>
                                         <span class="profile-label">Name:</span>
-                                        <span th:text="${student.name}"></span>
+<span th:text="${student != null ? student.name : 'Not available'}"></span>
                                     </p>
 
                                     <p>
                                         <span class="profile-label">Email:</span>
-                                        <span th:text="${student.email}"></span>
+<span th:text="${student != null ? student.email : 'Not available'}"></span>
                                     </p>
 
                                     <p>
                                         <span class="profile-label">Mobile:</span>
-                                        <span th:text="${student.mobile}"></span>
+<span th:text="${student != null ? student.mobile : 'Not available'}"></span>
                                     </p>
 
                                     <p>
                                         <span class="profile-label">Course:</span>
-                                        <span th:text="${student.course}"></span>
+<span th:text="${student != null ? student.course : 'Not available'}"></span>
                                     </p>
 
                                 </div>
