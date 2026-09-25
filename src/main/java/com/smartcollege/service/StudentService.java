@@ -42,12 +42,13 @@ public class StudentService {
 
         if (student != null) {
 
-            // Find the related User account using student's email
-            User user = userRepository.findByEmail(student.getEmail());
+            // Find all related User accounts using student's email
+            List<User> users =
+                    userRepository.findAllByEmail(student.getEmail());
 
-            // Delete User account if found
-            if (user != null) {
-                userRepository.delete(user);
+            // Delete all matching User accounts
+            if (!users.isEmpty()) {
+                userRepository.deleteAll(users);
             }
 
             // Delete Student record
