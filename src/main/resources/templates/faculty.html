@@ -624,6 +624,12 @@
                         <span>Attendance</span>
                     </a>
                 </li>
+                <li class="nav-item" th:if="${session.role == 'FACULTY'}">
+                    <a class="nav-link text-warning" href="/faculty/qr-attendance">
+                        <i class="bi bi-qr-code-scan"></i>
+                        <span>QR Attendance</span>
+                    </a>
+                </li>
 
                 <!-- User Session Pill & Logout -->
                 <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 mt-2 mt-lg-0">
@@ -663,6 +669,12 @@
 
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 <div class="d-inline-flex flex-wrap gap-2 justify-content-lg-end">
+                    <a th:if="${session.role == 'FACULTY'}"
+                       href="/faculty/qr-attendance"
+                       class="btn-banner-action bg-warning text-dark border-warning">
+                        <i class="bi bi-qr-code-scan"></i>
+                        <span>Generate QR</span>
+                    </a>
                     <a th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
                        href="/faculty-register"
                        class="btn-banner-action">

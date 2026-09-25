@@ -550,6 +550,12 @@
                         <span>Attendance</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/marks-sessions">
+                        <i class="bi bi-award-fill"></i>
+                        <span>Semester Marks</span>
+                    </a>
+                </li>
 
                 <!-- User Session Pill & Logout -->
                 <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 mt-2 mt-lg-0">
@@ -816,7 +822,7 @@
             </div>
 
             <!-- Attendance Module -->
-            <div class="col-12 col-md-6 col-xl-3">
+            <div class="col-12 col-md-6 col-xl-4">
                 <div class="module-card">
                     <div>
                         <div class="module-header">
@@ -838,6 +844,31 @@
                         </a>
                         <a href="/attendance-register" class="btn-module-secondary">
                             <i class="bi bi-plus-lg"></i> Mark Entry
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Semester Marks Module (FEATURE 2) -->
+            <div class="col-12 col-md-6 col-xl-4">
+                <div class="module-card">
+                    <div>
+                        <div class="module-header">
+                            <div class="module-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-award-fill fs-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="module-title">Semester Marks</h3>
+                                <p class="module-subtitle">Assessment & Sessions</p>
+                            </div>
+                        </div>
+                        <p class="module-desc">
+                            Control semester marks submission windows, review student submissions, and apply administrative score adjustments.
+                        </p>
+                    </div>
+                    <div class="module-actions">
+                        <a href="/admin/marks-sessions" class="btn-module-primary">
+                            <i class="bi bi-folder-check"></i> Manage Sessions
                         </a>
                     </div>
                 </div>

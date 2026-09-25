@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty QR Attendance | Smart College</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85) !important;
+            padding: 0.5rem 0.9rem !important;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .admin-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+        }
+
+        .qr-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .timer-badge {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            padding: 0.5rem 1.5rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .timer-active {
+            background: #ecfdf5;
+            color: #059669;
+            border: 2px solid #10b981;
+        }
+
+        .timer-warning {
+            background: #fffbeb;
+            color: #d97706;
+            border: 2px solid #f59e0b;
+        }
+
+        .timer-expired {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 2px solid #ef4444;
+        }
+
+        .qr-frame {
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            display: inline-block;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 2px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/faculty">
+            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Smart College Management
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navContent">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="/faculty"><i class="bi bi-person-workspace me-1"></i>Faculty Directory</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/faculty/qr-attendance"><i class="bi bi-qr-code-scan me-1"></i>QR Attendance</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/attendance"><i class="bi bi-calendar-check me-1"></i>All Attendance</a>
+                </li>
+                <li class="nav-item ms-lg-2 d-flex align-items-center gap-2">
+                    <div class="admin-pill">
+                        <i class="bi bi-person-circle text-warning me-1"></i>
+                        <span th:text="${session.username != null ? session.username : 'Faculty'}">Faculty</span>
+                        <span class="badge bg-white text-dark rounded-pill px-2">FACULTY</span>
+                    </div>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-4 flex-grow-1">
+
+    <!-- Alerts -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- VIEW 1: ACTIVE SESSION VIEW (When session exists) -->
+    <div th:if="${attendanceSession != null}">
+        <div class="row g-4">
+            <!-- QR Display & Countdown -->
+            <div class="col-lg-6">
+                <div class="card qr-card h-100 text-center p-4">
+                    <div>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">
+                            <i class="bi bi-broadcast me-1"></i> Active Attendance Session
+                        </span>
+                        <h3 class="fw-bold mb-1" th:text="${attendanceSession.courseName}">Course Name</h3>
+                        <p class="text-muted small mb-3">Session Token: <code th:text="${attendanceSession.sessionToken}">token</code></p>
+                    </div>
+
+                    <!-- Countdown Timer -->
+                    <div class="my-3">
+                        <div id="timerBox" class="timer-badge timer-active">
+                            <i class="bi bi-clock-history me-1"></i>
+                            <span id="countdownDisplay">02:00</span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            Validity: <span class="fw-semibold">2 Minutes</span> from generation
+                        </div>
+                    </div>
+
+                    <!-- QR Code Image -->
+                    <div class="my-3" id="qrContainer">
+                        <div class="qr-frame">
+                            <img th:if="${qrImage != null}" th:src="${qrImage}" alt="Attendance QR Code" class="img-fluid" style="width: 280px; height: 280px;" id="qrImageElement">
+                        </div>
+                        <div th:if="${qrUrl != null}" class="mt-2 text-break small text-muted">
+                            <i class="bi bi-link-45deg"></i> Scanner URL: <a th:href="${qrUrl}" target="_blank" th:text="${qrUrl}"></a>
+                        </div>
+                    </div>
+
+                    <!-- Expired Alert Box (hidden initially if active) -->
+                    <div id="expiredAlert" class="alert alert-danger d-none mt-3">
+                        <i class="bi bi-exclamation-octagon-fill fs-5 d-block mb-1"></i>
+                        <strong>QR Code Expired</strong><br>
+                        This 2-minute QR code is no longer valid. Students cannot scan this code anymore.
+                    </div>
+
+                    <!-- Action Controls -->
+                    <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap">
+                        <a th:href="@{/faculty/manual-attendance/{token}(token=${attendanceSession.sessionToken})}"
+                           class="btn btn-warning fw-semibold px-3">
+                            <i class="bi bi-person-check-fill me-1"></i> Manually Mark Missed Students
+                        </a>
+                        <a th:href="@{/faculty/generate-new-qr/{token}(token=${attendanceSession.sessionToken})}" class="btn btn-outline-primary px-3">
+                            <i class="bi bi-plus-circle me-1"></i> Generate New QR
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Details & Real-Time Attendees -->
+            <div class="col-lg-6">
+                <div class="card qr-card h-100 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-people-fill text-primary me-2"></i>Live Attendees
+                        </h4>
+                        <span class="badge bg-success fs-6 rounded-pill px-3 py-2" id="attendeeCountBadge">
+                            <span id="attendeeCount" th:text="${attendees != null ? #lists.size(attendees) : 0}">0</span> Present
+                        </span>
+                    </div>
+
+                    <!-- Session Metadata -->
+                    <div class="bg-light rounded-3 p-3 mb-3 small">
+                        <div class="row g-2">
+                            <div class="col-6"><strong>Classroom Lat:</strong> <span th:text="${attendanceSession.latitude}">0.0</span></div>
+                            <div class="col-6"><strong>Classroom Lng:</strong> <span th:text="${attendanceSession.longitude}">0.0</span></div>
+                            <div class="col-6"><strong>Allowed Radius:</strong> <span th:text="${attendanceSession.radiusMeters + ' m'}">100 m</span></div>
+                            <div class="col-6"><strong>Generated At:</strong> <span th:text="${attendanceSession.createdAt}">Just now</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Attendees Table -->
+                    <div class="table-responsive flex-grow-1" style="max-height: 380px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Student Name</th>
+                                    <th>Email</th>
+                                    <th>Type</th>
+                                    <th>Distance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendeesTableBody">
+                                <tr th:each="att, stat : ${attendees}">
+                                    <td th:text="${stat.count}">1</td>
+                                    <td class="fw-semibold" th:text="${att.studentName}">Student</td>
+                                    <td th:text="${att.studentEmail}">email</td>
+                                    <td>
+                                        <span class="badge bg-success" th:if="${att.markingType == 'QR'}">QR Code</span>
+                                        <span class="badge bg-secondary" th:if="${att.markingType == 'MANUAL'}">Manual</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${att.distanceMeters != null}" th:text="${att.distanceMeters + ' m'}">0 m</span>
+                                        <span th:if="${att.distanceMeters == null}">-</span>
+                                    </td>
+                                </tr>
+								<tr th:if="${attendees == null or #lists.isEmpty(attendees)}" id="noAttendeesRow">
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="bi bi-clock text-muted d-block fs-4 mb-1"></i>
+                                        Waiting for students to scan QR code...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: QR GENERATION FORM (When no active session is selected) -->
+    <div th:if="${attendanceSession == null}">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card qr-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex p-3 mb-2">
+                            <i class="bi bi-qr-code-scan fs-1"></i>
+                        </div>
+                        <h2 class="fw-bold">Generate Attendance QR Code</h2>
+                        <p class="text-muted">Generate a secure, location-verified QR code valid for exactly 2 minutes for your lecture.</p>
+                    </div>
+
+                    <form th:action="@{/faculty/generate-qr}" method="post" id="qrGenerateForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Course / Class <span class="text-danger">*</span></label>
+                            <select name="courseName" class="form-select form-select-lg" required>
+                                <option value="">-- Choose Course --</option>
+                                <option th:each="course : ${courses}" th:value="${course.courseName}" th:text="${course.courseName + ' (' + course.courseCode + ')'}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Classroom Geolocation -->
+                        <div class="card bg-light border-0 p-3 mb-4 rounded-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold mb-0">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> Classroom Location Coordinates
+                                </h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnGetLocation">
+                                    <i class="bi bi-crosshair me-1"></i> Fetch Current GPS
+                                </button>
+                            </div>
+                            <p class="small text-muted mb-3">
+                                The system records your classroom GPS location so students scanning the QR must physically be in the classroom.
+                            </p>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Latitude</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" name="latitude" id="inputLat" placeholder="Auto-detected">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Longitude</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" name="longitude" id="inputLng" placeholder="Auto-detected">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Allowed Radius (Meters)</label>
+                                    <input type="number" class="form-control form-control-sm" name="radiusMeters" th:value="${defaultRadius != null ? defaultRadius : 100}" min="10" max="1000">
+                                </div>
+                            </div>
+                            <div id="locStatus" class="small mt-2 text-primary">
+                                <i class="bi bi-info-circle me-1"></i> Click 'Fetch Current GPS' or allow location access.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                            <i class="bi bi-qr-code me-2"></i> Generate QR Code (2-Min Validity)
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Previous Sessions History -->
+                <div class="card qr-card p-4 mt-4" th:if="${previousSessions != null and !#lists.isEmpty(previousSessions)}">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Your Recent QR Sessions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Created At</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="s : ${previousSessions}">
+                                    <td class="fw-semibold" th:text="${s.courseName}">Course</td>
+                                    <td th:text="${s.createdAt}">Time</td>
+                                    <td>
+                                        <span class="badge bg-danger" th:if="${s.expired}">Expired</span>
+                                        <span class="badge bg-success" th:unless="${s.expired}">Active</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/faculty/session/{token}(token=${s.sessionToken})}" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a th:href="@{/faculty/manual-attendance/{token}(token=${s.sessionToken})}" class="btn btn-sm btn-outline-warning">Manual Attendance</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+    <small class="text-white-50">Smart College Management System &bull; Secure QR Attendance Portal</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Geolocation & Countdown Timer Script -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 1. Geolocation Fetcher for QR Generation form
+    const btnGetLocation = document.getElementById('btnGetLocation');
+    if (btnGetLocation) {
+        btnGetLocation.addEventListener('click', function () {
+            const locStatus = document.getElementById('locStatus');
+            if (navigator.geolocation) {
+                locStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Requesting GPS location...';
+                navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                        document.getElementById('inputLat').value = pos.coords.latitude.toFixed(6);
+                        document.getElementById('inputLng').value = pos.coords.longitude.toFixed(6);
+                        locStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> GPS coordinates captured successfully!</span>';
+                    },
+                    function (err) {
+                        locStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i> Location permission denied or unavailable. Default classroom location will be used.</span>';
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                locStatus.innerText = 'Geolocation is not supported by this browser.';
+            }
+        });
+
+        // Automatically trigger on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (btnGetLocation) btnGetLocation.click();
+        });
+    }
+
+    // 2. Countdown Timer & Live Polling for Active Session
+    let secondsLeft = /*[[${secondsRemaining != null ? secondsRemaining : 0}]]*/ 0;
+    const sessionToken = /*[[${attendanceSession != null ? attendanceSession.sessionToken : ''}]]*/ '';
+    const isExpiredInitially = /*[[${isExpired != null ? isExpired : false}]]*/ false;
+
+    if (sessionToken) {
+        const timerBox = document.getElementById('timerBox');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const expiredAlert = document.getElementById('expiredAlert');
+        const qrImageElement = document.getElementById('qrImageElement');
+
+        function updateTimerUI() {
+            if (secondsLeft <= 0) {
+                countdownDisplay.textContent = "00:00";
+                timerBox.className = "timer-badge timer-expired";
+                if (expiredAlert) expiredAlert.classList.remove('d-none');
+                if (qrImageElement) qrImageElement.style.opacity = '0.25';
+                return;
+            }
+
+            const m = Math.floor(secondsLeft / 60);
+            const s = secondsLeft % 60;
+            countdownDisplay.textContent = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+
+            if (secondsLeft <= 30) {
+                timerBox.className = "timer-badge timer-warning";
+            } else {
+                timerBox.className = "timer-badge timer-active";
+            }
+        }
+
+        updateTimerUI();
+
+        // 1-second countdown interval
+        const timerInterval = setInterval(() => {
+            if (secondsLeft > 0) {
+                secondsLeft--;
+                updateTimerUI();
+            } else {
+                clearInterval(timerInterval);
+                updateTimerUI();
+            }
+        }, 1000);
+
+        // 3-second live attendee polling
+        const pollInterval = setInterval(() => {
+            fetch('/faculty/api/session-status/' + encodeURIComponent(sessionToken))
+                .then(res => res.json())
+                .then(data => {
+                    if (data.totalPresent !== undefined) {
+                        const countEl = document.getElementById('attendeeCount');
+                        if (countEl) countEl.textContent = data.totalPresent;
+                    }
+
+                    if (data.attendees && data.attendees.length > 0) {
+                        const tableBody = document.getElementById('attendeesTableBody');
+                        let html = '';
+                        data.attendees.forEach((att, idx) => {
+                            html += `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td class="fw-semibold">${att.studentName || ''}</td>
+                                    <td>${att.studentEmail || ''}</td>
+                                    <td><span class="badge ${att.markingType === 'QR' ? 'bg-success' : 'bg-secondary'}">${att.markingType}</span></td>
+                                    <td>${att.distanceMeters !== null && att.distanceMeters !== undefined ? att.distanceMeters + ' m' : '-'}</td>
+                                </tr>
+                            `;
+                        });
+                        tableBody.innerHTML = html;
+                    }
+
+                    if (data.expired && secondsLeft <= 0) {
+                        clearInterval(pollInterval);
+                    }
+                })
+                .catch(err => console.error("Polling error", err));
+        }, 3000);
+    }
+    /*]]>*/
+</script>
+
+</body>
+</html>

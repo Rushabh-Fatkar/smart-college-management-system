@@ -201,7 +201,7 @@ Welcome, <span th:text="${student != null ? student.name : 'Student'}">Student</
 
                     <!-- Profile -->
 
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-6 col-lg-4">
 
                         <div class="card shadow-sm feature-card">
 
@@ -246,9 +246,77 @@ Welcome, <span th:text="${student != null ? student.name : 'Student'}">Student</
                     </div>
 
 
+                    <!-- QR Attendance (FEATURE 1) -->
+
+                    <div class="col-12 col-md-6 col-lg-4">
+
+                        <div class="card shadow-sm feature-card">
+
+                            <div class="card-body text-center">
+
+                                <div class="feature-icon">
+                                    📱
+                                </div>
+
+                                <h5>
+                                    QR Attendance
+                                </h5>
+
+                                <p class="text-muted">
+                                    Scan 2-min classroom QR code to mark attendance
+                                </p>
+
+                                <a href="/student/scan-qr"
+                                   class="btn btn-primary action-btn">
+
+                                    Scan QR Code
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Semester Marks (FEATURE 2) -->
+
+                    <div class="col-12 col-md-6 col-lg-4">
+
+                        <div class="card shadow-sm feature-card">
+
+                            <div class="card-body text-center">
+
+                                <div class="feature-icon">
+                                    📝
+                                </div>
+
+                                <h5>
+                                    Semester Marks
+                                </h5>
+
+                                <p class="text-muted">
+                                    Submit and view locked semester marks
+                                </p>
+
+                                <a href="/student/marks"
+                                   class="btn btn-info text-white action-btn">
+
+                                    Semester Marks
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
                     <!-- Attendance -->
 
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-6 col-lg-4">
 
                         <div class="card shadow-sm feature-card">
 
@@ -263,7 +331,7 @@ Welcome, <span th:text="${student != null ? student.name : 'Student'}">Student</
                                 </h5>
 
                                 <p class="text-muted">
-                                    View your attendance
+                                    View your attendance records
                                 </p>
 
                                 <a href="/student-attendance"
@@ -282,7 +350,7 @@ Welcome, <span th:text="${student != null ? student.name : 'Student'}">Student</
 
                     <!-- Attendance Percentage -->
 
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-6 col-lg-4">
 
                         <div class="card shadow-sm feature-card">
 

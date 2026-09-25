@@ -710,6 +710,12 @@
 
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 <div class="d-inline-flex flex-wrap gap-2 justify-content-lg-end">
+                    <a th:if="${session.role == 'FACULTY'}"
+                       href="/faculty/qr-attendance"
+                       class="btn-banner-action bg-warning text-dark border-warning">
+                        <i class="bi bi-qr-code-scan"></i>
+                        <span>Generate QR</span>
+                    </a>
                     <a th:if="${session.role == 'ADMIN' or session.role == 'FACULTY'}"
                        href="/attendance-register"
                        class="btn-banner-action">

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submitted Student Marks | Admin Portal</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-card {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Smart College Management
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <a href="/admin/marks-sessions" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> All Sessions
+            </a>
+            <a class="btn btn-danger btn-sm" href="/logout">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-4 flex-grow-1">
+
+    <!-- Header Details -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-1">Session Marks Review</span>
+            <h2 class="fw-bold mb-1" th:text="${marksSession.sessionName}">Session Name</h2>
+            <p class="text-muted mb-0">
+                Semester: <strong class="text-dark" th:text="${marksSession.semester}">Semester 1</strong> &bull;
+                Year: <span th:text="${marksSession.academicYear}">2025-2026</span> &bull;
+                Status:
+                <span class="badge bg-success" th:if="${marksSession.open}">OPEN</span>
+                <span class="badge bg-secondary" th:unless="${marksSession.open}">CLOSED</span>
+            </p>
+        </div>
+        <div>
+            <a href="/admin/marks-sessions" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Sessions
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Submissions Table Card -->
+    <div class="card main-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">Student Submitted Marks</h5>
+            <span class="badge bg-info text-dark rounded-pill px-3 py-1.5" th:text="${(submissions != null ? #lists.size(submissions) : 0) + ' Subject Entries'}">0 Entries</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Subject Name</th>
+                        <th>Marks Obtained</th>
+                        <th>Total Marks</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Remarks / Audit</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="m, stat : ${submissions}">
+                        <td th:text="${stat.count}">1</td>
+                        <td>
+                            <div class="fw-bold text-dark" th:text="${m.student != null ? m.student.name : 'Unknown'}">Student Name</div>
+                            <small class="text-muted" th:text="${m.student != null ? m.student.email : ''}">email</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border" th:text="${m.courseName}">Course</span></td>
+                        <td class="fw-semibold text-primary" th:text="${m.subjectName}">Mathematics</td>
+                        <td class="fw-bold fs-6" th:text="${m.marksObtained}">85</td>
+                        <td th:text="${m.totalMarks}">100</td>
+                        <td>
+                            <span class="badge bg-success" th:text="${m.grade}">A</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary" th:if="${m.status == 'SUBMITTED'}">
+                                <i class="bi bi-lock-fill me-1"></i> LOCKED
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted" th:text="${m.remarks}">Submitted by Student</small>
+                        </td>
+                        <td class="text-end">
+                            <a th:href="@{/admin/marks/edit/{id}(id=${m.id})}" class="btn btn-sm btn-outline-primary fw-semibold">
+                                <i class="bi bi-pencil-square me-1"></i> Edit / Correct
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${submissions == null or #lists.isEmpty(submissions)}">
+                        <td colspan="10" class="text-center text-muted py-5">
+                            <i class="bi bi-folder2-open fs-2 text-muted d-block mb-2"></i>
+                            No students have submitted marks for this session yet.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+    <small class="text-white-50">Smart College Management System &bull; Admin Marks Review</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

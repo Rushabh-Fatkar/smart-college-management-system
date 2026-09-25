@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Attendance | Smart College</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- HTML5 QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .scanner-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .camera-viewport {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000000;
+        }
+
+        .geo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/student-profile">
+            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Student Portal
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <a href="/student-profile" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-person me-1"></i> My Profile
+            </a>
+            <a href="/student-attendance" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-calendar-check me-1"></i> My Attendance
+            </a>
+            <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-4 flex-grow-1">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <!-- Flash Messages -->
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Dynamic Result Card (Shown after AJAX scan) -->
+            <div id="resultAlert" class="alert d-none shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i id="resultIcon" class="bi fs-3 me-3"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1" id="resultTitle">Result</h5>
+                        <p class="mb-0" id="resultMessage">Message</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card scanner-card p-4 p-md-5">
+
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">
+                        <i class="bi bi-camera-fill me-1"></i> Live QR Scanner
+                    </span>
+                    <h2 class="fw-bold">Mark Attendance via QR</h2>
+                    <p class="text-muted small">
+                        Scan the 2-minute attendance QR code displayed by your faculty in the classroom.
+                    </p>
+                </div>
+
+                <!-- Geolocation Status Banner -->
+                <div class="card bg-light border-0 p-3 mb-4 rounded-3 text-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <span id="geoBadge" class="geo-pill bg-warning bg-opacity-25 text-warning border border-warning">
+                                <i class="bi bi-geo-alt-fill"></i> <span id="geoStatusText">Acquiring GPS Location...</span>
+                            </span>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnRetryGeo">
+                            <i class="bi bi-arrow-repeat me-1"></i> Refresh GPS
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 text-start">
+                        <i class="bi bi-shield-lock me-1"></i> Location permission is strictly required by the server to verify you are physically inside the classroom.
+                    </small>
+                </div>
+
+                <!-- Camera QR Scanner Viewport -->
+                <div class="text-center mb-4">
+                    <div class="camera-viewport mb-3 shadow" id="qr-reader" style="min-height: 280px;">
+                        <!-- Camera feed will be initialized here -->
+                    </div>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnStartCamera">
+                            <i class="bi bi-camera-video me-1"></i> Start Camera
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnStopCamera">
+                            <i class="bi bi-camera-video-off me-1"></i> Stop Camera
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Manual Token Entry Fallback -->
+                <div class="text-center mb-2">
+                    <h6 class="fw-bold text-muted text-uppercase small">Or Enter Attendance Session Code Manually</h6>
+                </div>
+
+                <form th:action="@{/student/submit-qr-attendance}" method="post" id="manualQrForm">
+                    <input type="hidden" name="latitude" id="formLat">
+                    <input type="hidden" name="longitude" id="formLng">
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="bi bi-key-fill text-primary"></i></span>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               name="sessionToken"
+                               id="inputSessionToken"
+                               th:value="${prefillToken}"
+                               placeholder="Paste or enter Session Code..."
+                               required>
+                        <button class="btn btn-success fw-bold px-4" type="submit" id="btnSubmitManual">
+                            <i class="bi bi-check-circle me-1"></i> Submit
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="/student-attendance" class="btn btn-link text-decoration-none">
+                        <i class="bi bi-pie-chart me-1"></i> View My Attendance Records
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+    <small class="text-white-50">Smart College Management System &bull; Student QR Attendance</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let studentLat = null;
+    let studentLng = null;
+    let html5QrCode = null;
+    let isSubmitting = false;
+
+    // 1. Fetch Student GPS Location
+    function acquireLocation() {
+        const geoBadge = document.getElementById('geoBadge');
+        const geoStatusText = document.getElementById('geoStatusText');
+
+        if (navigator.geolocation) {
+            geoStatusText.textContent = "Acquiring GPS location...";
+            geoBadge.className = "geo-pill bg-warning bg-opacity-25 text-warning border border-warning";
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    studentLat = pos.coords.latitude;
+                    studentLng = pos.coords.longitude;
+                    document.getElementById('formLat').value = studentLat;
+                    document.getElementById('formLng').value = studentLng;
+
+                    geoBadge.className = "geo-pill bg-success bg-opacity-25 text-success border border-success";
+                    geoStatusText.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Location Verified (${studentLat.toFixed(4)}, ${studentLng.toFixed(4)})`;
+                },
+                function (err) {
+                    studentLat = null;
+                    studentLng = null;
+                    geoBadge.className = "geo-pill bg-danger bg-opacity-25 text-danger border border-danger";
+                    geoStatusText.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> Location Permission Denied: ${err.message}`;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        } else {
+            geoBadge.className = "geo-pill bg-danger bg-opacity-25 text-danger border border-danger";
+            geoStatusText.textContent = "Geolocation not supported by device.";
+        }
+    }
+
+    document.getElementById('btnRetryGeo').addEventListener('click', acquireLocation);
+
+    // 2. Submit QR Code Attendance via AJAX
+    function submitAttendance(token) {
+        if (isSubmitting) return;
+
+        if (!studentLat || !studentLng) {
+            showResult(false, "Location Permission Required", "Please allow GPS location permission so your classroom presence can be verified.");
+            acquireLocation();
+            return;
+        }
+
+        isSubmitting = true;
+        showResult('loading', "Verifying Attendance...", "Validating session code, 2-minute expiration, and classroom distance on server...");
+
+        const formData = new FormData();
+        formData.append('sessionToken', token);
+        formData.append('latitude', studentLat);
+        formData.append('longitude', studentLng);
+
+        fetch('/student/api/submit-qr-attendance', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            isSubmitting = false;
+            if (data.success) {
+                showResult(true, "Success!", data.message);
+                if (html5QrCode) {
+                    html5QrCode.stop().catch(() => {});
+                }
+            } else {
+                showResult(false, "Attendance Rejected", data.message);
+            }
+        })
+        .catch(err => {
+            isSubmitting = false;
+            showResult(false, "Submission Error", "Failed to connect to server: " + err.message);
+        });
+    }
+
+    // 3. Result Banner UI Handler
+    function showResult(type, title, message) {
+        const alertBox = document.getElementById('resultAlert');
+        const icon = document.getElementById('resultIcon');
+        const titleEl = document.getElementById('resultTitle');
+        const msgEl = document.getElementById('resultMessage');
+
+        alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info');
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+
+        if (type === true) {
+            alertBox.classList.add('alert-success');
+            icon.className = "bi bi-check-circle-fill text-success fs-3 me-3";
+        } else if (type === false) {
+            alertBox.classList.add('alert-danger');
+            icon.className = "bi bi-exclamation-triangle-fill text-danger fs-3 me-3";
+        } else {
+            alertBox.classList.add('alert-info');
+            icon.className = "bi bi-hourglass-split text-info fs-3 me-3";
+        }
+
+        alertBox.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 4. Initialize HTML5 QR Code Scanner
+    function startCamera() {
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader");
+        }
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrCode.start({ facingMode: "environment" }, config,
+            (decodedText, decodedResult) => {
+                // Detected QR code!
+                console.log("Scanned text:", decodedText);
+                let token = decodedText.trim();
+                // If it's a URL like ...?token=xyz, extract token
+                if (token.includes('token=')) {
+                    token = token.split('token=')[1].split('&')[0];
+                }
+                document.getElementById('inputSessionToken').value = token;
+                submitAttendance(token);
+            },
+            (errorMessage) => {
+                // Scanning frame ignored
+            }
+        ).catch(err => {
+            console.error("Camera start error", err);
+            const container = document.getElementById('qr-reader');
+            container.innerHTML = `
+                <div class="text-white text-center p-4">
+                    <i class="bi bi-camera-video-off fs-1 text-secondary mb-2 d-block"></i>
+                    <p class="small mb-0">Camera permission denied or camera unavailable.<br>Please use the manual session code input below.</p>
+                </div>
+            `;
+        });
+    }
+
+    function stopCamera() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                console.log("Camera stopped");
+            }).catch(err => console.error("Error stopping camera", err));
+        }
+    }
+
+    document.getElementById('btnStartCamera').addEventListener('click', startCamera);
+    document.getElementById('btnStopCamera').addEventListener('click', stopCamera);
+
+    // 5. Manual form submission intercept
+    document.getElementById('manualQrForm').addEventListener('submit', function (e) {
+        const token = document.getElementById('inputSessionToken').value.trim();
+        if (token) {
+            e.preventDefault();
+            submitAttendance(token);
+        }
+    });
+
+    // Auto-initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        acquireLocation();
+        startCamera();
+    });
+</script>
+
+</body>
+</html>

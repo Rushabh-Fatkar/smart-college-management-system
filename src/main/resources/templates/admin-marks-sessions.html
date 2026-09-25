@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester Marks Sessions | Admin Portal</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .custom-navbar {
+            background: rgba(30, 64, 175, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-pill {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 0.85rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+        }
+
+        .main-card {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark custom-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="bi bi-mortarboard-fill text-warning me-1"></i> Smart College Management
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navContent">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/students"><i class="bi bi-people-fill me-1"></i>Students</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/faculty"><i class="bi bi-person-workspace me-1"></i>Faculty</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses"><i class="bi bi-book-half me-1"></i>Courses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/attendance"><i class="bi bi-calendar-check me-1"></i>Attendance</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/marks-sessions"><i class="bi bi-journal-check me-1"></i>Semester Marks</a>
+                </li>
+                <li class="nav-item ms-lg-2 d-flex align-items-center gap-2">
+                    <div class="admin-pill">
+                        <i class="bi bi-person-circle text-warning me-1"></i>
+                        <span th:text="${session.username != null ? session.username : 'Admin'}">Admin</span>
+                        <span class="badge bg-white text-dark rounded-pill px-2">ADMIN</span>
+                    </div>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-4 flex-grow-1">
+
+    <!-- Header Banner -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-award-fill text-primary me-2"></i>Semester Marks Management
+            </h2>
+            <p class="text-muted mb-0">Control semester marks submission sessions, review student scores, and apply admin corrections.</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#newSessionModal">
+                <i class="bi bi-plus-lg me-1"></i> Create Marks Session
+            </button>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Marks Sessions Table -->
+    <div class="card main-card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">All Semester Marks Submission Sessions</h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-1.5" th:text="${(sessions != null ? #lists.size(sessions) : 0) + ' Total Sessions'}">0 Total</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Session Name</th>
+                        <th>Semester</th>
+                        <th>Academic Year</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="s, stat : ${sessions}">
+                        <td th:text="${stat.count}">1</td>
+                        <td class="fw-bold text-dark" th:text="${s.sessionName}">Session Name</td>
+                        <td><span class="badge bg-light text-primary border" th:text="${s.semester}">Semester 1</span></td>
+                        <td th:text="${s.academicYear}">2025-2026</td>
+                        <td>
+                            <span class="badge bg-success px-2.5 py-1.5 fs-7" th:if="${s.open}">
+                                <i class="bi bi-door-open-fill me-1"></i> OPEN
+                            </span>
+                            <span class="badge bg-secondary px-2.5 py-1.5 fs-7" th:unless="${s.open}">
+                                <i class="bi bi-door-closed-fill me-1"></i> CLOSED
+                            </span>
+                        </td>
+                        <td><small class="text-muted" th:text="${#temporals.format(s.createdAt, 'yyyy-MM-dd HH:mm')}">Date</small></td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-2">
+                                <!-- View Submissions Button -->
+                                <a th:href="@{/admin/marks-sessions/{id}/submissions(id=${s.id})}"
+                                   class="btn btn-sm btn-outline-primary fw-semibold">
+                                    <i class="bi bi-eye-fill me-1"></i> View Marks
+                                </a>
+
+                                <!-- Toggle Open/Close Button -->
+                                <form th:action="@{/admin/marks-sessions/{id}/toggle-status(id=${s.id})}" method="post" class="d-inline">
+                                    <button type="submit"
+                                            class="btn btn-sm fw-semibold"
+                                            th:classappend="${s.open} ? 'btn-outline-danger' : 'btn-outline-success'">
+                                        <i class="bi" th:classappend="${s.open} ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
+                                        <span th:text="${s.open} ? 'Close Session' : 'Open Session'">Toggle</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${sessions == null or #lists.isEmpty(sessions)}">
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-2 text-muted d-block mb-2"></i>
+                            No semester marks sessions found. Click <strong>"Create Marks Session"</strong> above to start one.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<!-- Modal: Create New Marks Session -->
+<div class="modal fade" id="newSessionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form th:action="@{/admin/marks-sessions/create}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-1 text-primary"></i> Create Marks Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Session Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="sessionName" placeholder="e.g. 2025-2026 Odd Semester Assessment" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Semester <span class="text-danger">*</span></label>
+                        <select class="form-select" name="semester" required>
+                            <option value="">-- Choose Semester --</option>
+                            <option value="Semester 1">Semester 1</option>
+                            <option value="Semester 2">Semester 2</option>
+                            <option value="Semester 3">Semester 3</option>
+                            <option value="Semester 4">Semester 4</option>
+                            <option value="Semester 5">Semester 5</option>
+                            <option value="Semester 6">Semester 6</option>
+                            <option value="Semester 7">Semester 7</option>
+                            <option value="Semester 8">Semester 8</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Academic Year</label>
+                        <input type="text" class="form-control" name="academicYear" placeholder="e.g. 2025-2026">
+                    </div>
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" name="openImmediately" value="true" id="openCheck" checked>
+                        <label class="form-check-label fw-semibold" for="openCheck">Open session immediately for student submission</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Create Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+    <small class="text-white-50">Smart College Management System &bull; Semester Marks Portal</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
