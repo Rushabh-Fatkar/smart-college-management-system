@@ -50,7 +50,7 @@
             background: #000000;
         }
 
-        .geo-pill {
+        .status-pill {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -101,10 +101,19 @@
             <div id="resultAlert" class="alert d-none shadow-sm mb-4" role="alert">
                 <div class="d-flex align-items-center">
                     <i id="resultIcon" class="bi fs-3 me-3"></i>
-                    <div>
+                    <div class="flex-grow-1">
                         <h5 class="alert-heading mb-1" id="resultTitle">Result</h5>
-                        <p class="mb-0" id="resultMessage">Message</p>
+                        <p class="mb-1" id="resultMessage">Message</p>
+                        <div id="resultDetails" class="small mt-2 pt-2 border-top d-none"></div>
                     </div>
+                </div>
+                <div class="mt-3 pt-2 border-top d-flex justify-content-end gap-2" id="resultActions">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetScanner()">
+                        <i class="bi bi-arrow-repeat me-1"></i> Scan Another QR
+                    </button>
+                    <a href="/student-attendance" class="btn btn-sm btn-primary">
+                        <i class="bi bi-calendar-check me-1"></i> View My Attendance
+                    </a>
                 </div>
             </div>
 
@@ -124,7 +133,7 @@
                 <!-- Session Validity Banner -->
                 <div class="card bg-light border-0 p-3 mb-4 rounded-3 text-center">
                     <div class="d-flex justify-content-center align-items-center gap-2">
-                        <span class="geo-pill bg-success bg-opacity-25 text-success border border-success">
+                        <span class="status-pill bg-success bg-opacity-25 text-success border border-success">
                             <i class="bi bi-shield-check me-1"></i> <span>Ready to Scan &bull; 2-Minute QR Validity</span>
                         </span>
                     </div>
@@ -194,13 +203,40 @@
 <script>
     let html5QrCode = null;
     let isSubmitting = false;
+    let hasScannedSuccessfully = false;
+
+    // Helper: Safely extract session token from URL or raw string
+    function extractToken(raw) {
+        if (!raw) return '';
+        let token = raw.trim();
+        try {
+            if (token.startsWith('http://') || token.startsWith('https://')) {
+                const url = new URL(token);
+                const t = url.searchParams.get('token');
+                if (t) return t.trim();
+            }
+        } catch (e) {}
+        if (token.includes('token=')) {
+            const parts = token.split('token=');
+            if (parts.length > 1) {
+                return parts[1].split('&')[0].split('#')[0].trim();
+            }
+        }
+        return token;
+    }
 
     // 1. Submit QR Code Attendance via AJAX
-    function submitAttendance(token) {
-        if (isSubmitting) return;
+    function submitAttendance(rawToken) {
+        const token = extractToken(rawToken);
+        if (!token) {
+            showResult('error', "Invalid QR Code", "The scanned code did not contain a valid session identifier.");
+            return;
+        }
 
+        if (isSubmitting) return;
         isSubmitting = true;
-        showResult('loading', "Verifying Attendance...", "Validating session code and 2-minute expiration on server...");
+
+        showResult('loading', "Verifying Attendance...", "Validating session and recording attendance on server...");
 
         const formData = new FormData();
         formData.append('sessionToken', token);
@@ -212,48 +248,117 @@
         .then(res => res.json())
         .then(data => {
             isSubmitting = false;
+
+            // Stop camera on server response
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    const reader = document.getElementById('qr-reader');
+                    if (reader) {
+                        reader.innerHTML = `
+                            <div class="text-white text-center p-4">
+                                <i class="bi bi-camera-fill fs-1 text-secondary mb-2 d-block"></i>
+                                <p class="small mb-0">Camera paused after scan.<br>Click 'Scan Another QR' if you have another lecture.</p>
+                            </div>
+                        `;
+                    }
+                }).catch(() => {});
+            }
+
+            let detailsHtml = '';
+            if (data.courseName || data.lectureNumber || data.lectureDate) {
+                detailsHtml = `
+                    <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
+                        <span class="badge bg-primary">Course: ${data.courseName || ''}</span>
+                        <span class="badge bg-dark">Lecture #${data.lectureNumber || ''}</span>
+                        <span class="badge bg-secondary">Date: ${data.lectureDate || ''}</span>
+                        <span class="badge bg-success">Status: Present</span>
+                    </div>
+                `;
+            }
+
             if (data.success) {
-                showResult(true, "Success!", data.message);
-                if (html5QrCode) {
-                    html5QrCode.stop().catch(() => {});
-                }
+                hasScannedSuccessfully = true;
+                showResult('success', "Attendance Marked Successfully!", data.message || "Your attendance has been marked as Present.", detailsHtml);
             } else {
-                showResult(false, "Attendance Rejected", data.message);
+                const msg = data.message || "Attendance could not be recorded.";
+                const isAlreadyMarked = msg.toLowerCase().includes("already marked");
+                const isExpired = msg.toLowerCase().includes("expired");
+
+                if (isAlreadyMarked) {
+                    hasScannedSuccessfully = true;
+                    showResult('info', "Attendance Already Marked", msg + " You are already marked Present for this lecture session.", detailsHtml);
+                } else if (isExpired) {
+                    hasScannedSuccessfully = false;
+                    showResult('error', "QR Code Expired", msg + " Please ask your faculty for a new QR code.");
+                } else {
+                    hasScannedSuccessfully = false;
+                    showResult('error', "Attendance Not Marked", msg);
+                }
             }
         })
         .catch(err => {
             isSubmitting = false;
-            showResult(false, "Submission Error", "Failed to connect to server: " + err.message);
+            hasScannedSuccessfully = false;
+            showResult('error', "Connection Error", "Failed to connect to server: " + err.message + ". Please try again.");
         });
     }
 
-    // 3. Result Banner UI Handler
-    function showResult(type, title, message) {
+    // 2. Result Banner UI Handler
+    function showResult(type, title, message, details) {
         const alertBox = document.getElementById('resultAlert');
         const icon = document.getElementById('resultIcon');
         const titleEl = document.getElementById('resultTitle');
         const msgEl = document.getElementById('resultMessage');
+        const detailsEl = document.getElementById('resultDetails');
 
-        alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info');
+        alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info', 'alert-warning');
         titleEl.textContent = title;
         msgEl.textContent = message;
 
-        if (type === true) {
-            alertBox.classList.add('alert-success');
-            icon.className = "bi bi-check-circle-fill text-success fs-3 me-3";
-        } else if (type === false) {
-            alertBox.classList.add('alert-danger');
-            icon.className = "bi bi-exclamation-triangle-fill text-danger fs-3 me-3";
+        if (details) {
+            detailsEl.innerHTML = details;
+            detailsEl.classList.remove('d-none');
         } else {
-            alertBox.classList.add('alert-info');
-            icon.className = "bi bi-hourglass-split text-info fs-3 me-3";
+            detailsEl.classList.add('d-none');
+            detailsEl.innerHTML = '';
         }
 
-        alertBox.scrollIntoView({ behavior: 'smooth' });
+        if (type === 'success' || type === true) {
+            alertBox.classList.add('alert-success');
+            icon.className = "bi bi-check-circle-fill text-success fs-2 me-3";
+        } else if (type === 'info') {
+            alertBox.classList.add('alert-info');
+            icon.className = "bi bi-info-circle-fill text-info fs-2 me-3";
+        } else if (type === 'warning') {
+            alertBox.classList.add('alert-warning');
+            icon.className = "bi bi-exclamation-triangle-fill text-warning fs-2 me-3";
+        } else if (type === 'error' || type === false) {
+            alertBox.classList.add('alert-danger');
+            icon.className = "bi bi-x-circle-fill text-danger fs-2 me-3";
+        } else { // loading
+            alertBox.classList.add('alert-info');
+            icon.className = "bi bi-hourglass-split text-info fs-2 me-3";
+        }
+
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // 3. Reset Scanner for Another Scan
+    function resetScanner() {
+        hasScannedSuccessfully = false;
+        isSubmitting = false;
+        const alertBox = document.getElementById('resultAlert');
+        if (alertBox) alertBox.classList.add('d-none');
+        const inputField = document.getElementById('inputSessionToken');
+        if (inputField) inputField.value = '';
+        startCamera();
     }
 
     // 4. Initialize HTML5 QR Code Scanner
     function startCamera() {
+        hasScannedSuccessfully = false;
+        isSubmitting = false;
+
         if (!html5QrCode) {
             html5QrCode = new Html5Qrcode("qr-reader");
         }
@@ -262,13 +367,21 @@
 
         html5QrCode.start({ facingMode: "environment" }, config,
             (decodedText, decodedResult) => {
-                // Detected QR code!
-                console.log("Scanned text:", decodedText);
-                let token = decodedText.trim();
-                // If it's a URL like ...?token=xyz, extract token
-                if (token.includes('token=')) {
-                    token = token.split('token=')[1].split('&')[0];
+                // If already submitting or successfully scanned, ignore subsequent frames
+                if (hasScannedSuccessfully || isSubmitting) {
+                    return;
                 }
+
+                const token = extractToken(decodedText);
+                if (!token) return;
+
+                // Immediately mark as scanned and pause camera to prevent duplicate frame processing
+                hasScannedSuccessfully = true;
+                isSubmitting = true;
+                try {
+                    html5QrCode.pause(true);
+                } catch (e) {}
+
                 document.getElementById('inputSessionToken').value = token;
                 submitAttendance(token);
             },
@@ -300,16 +413,22 @@
 
     // 5. Manual form submission intercept
     document.getElementById('manualQrForm').addEventListener('submit', function (e) {
-        const token = document.getElementById('inputSessionToken').value.trim();
-        if (token) {
+        const rawToken = document.getElementById('inputSessionToken').value.trim();
+        if (rawToken) {
             e.preventDefault();
-            submitAttendance(token);
+            submitAttendance(rawToken);
         }
     });
 
     // Auto-initialize on page load
     window.addEventListener('DOMContentLoaded', () => {
-        startCamera();
+        const prefill = document.getElementById('inputSessionToken').value.trim();
+        if (prefill) {
+            // If token came via URL parameter (e.g. ?token=...), submit it directly
+            submitAttendance(prefill);
+        } else {
+            startCamera();
+        }
     });
 </script>
 

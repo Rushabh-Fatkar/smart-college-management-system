@@ -14,18 +14,6 @@ import com.smartcollege.entity.StudentMarks;
 class QrAttendanceServiceTest {
 
     @Test
-    void testHaversineDistanceCalculation() {
-        // Point A: New York (approx 40.7128, -74.0060)
-        // Point B: Very close point ~111 meters away (40.7138, -74.0060)
-        double distance = QrAttendanceService.calculateDistanceMeters(40.7128, -74.0060, 40.7138, -74.0060);
-        assertTrue(distance > 100 && distance < 120, "Distance should be around 111 meters, got: " + distance);
-
-        // Same point distance should be 0
-        double zeroDist = QrAttendanceService.calculateDistanceMeters(18.5204, 73.8567, 18.5204, 73.8567);
-        assertEquals(0.0, zeroDist, 0.001);
-    }
-
-    @Test
     void testAttendanceSessionExpiry() {
         AttendanceSession session = new AttendanceSession();
         session.setCreatedAt(LocalDateTime.now().minusSeconds(125));
@@ -162,5 +150,17 @@ class QrAttendanceServiceTest {
         assertEquals(12, session12.getLectureNumber());
         assertEquals(13, session13.getLectureNumber());
         assertEquals(5, sessionOsy.getLectureNumber());
+    }
+
+    @Test
+    void testAttendanceResultLectureDetails() {
+        QrAttendanceService.AttendanceResult result = new QrAttendanceService.AttendanceResult(
+                true, "Attendance marked successfully! Status: Present.", "ACN", 12, "26-09-2026"
+        );
+        assertTrue(result.isSuccess());
+        assertEquals("Attendance marked successfully! Status: Present.", result.getMessage());
+        assertEquals("ACN", result.getCourseName());
+        assertEquals(12, result.getLectureNumber());
+        assertEquals("26-09-2026", result.getLectureDate());
     }
 }

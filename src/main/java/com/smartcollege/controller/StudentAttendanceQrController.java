@@ -52,7 +52,7 @@ public class StudentAttendanceQrController {
 
     /**
      * AJAX Endpoint for Camera QR scanner:
-     * Submits scanned token directly without GPS or location dependency.
+     * Submits scanned session token directly.
      */
     @PostMapping("/student/api/submit-qr-attendance")
     @ResponseBody
@@ -76,13 +76,18 @@ public class StudentAttendanceQrController {
             return ResponseEntity.status(401).body(response);
         }
 
+        String cleanToken = cleanTokenString(sessionToken);
+
         QrAttendanceService.AttendanceResult result = qrAttendanceService.submitStudentAttendance(
-                sessionToken,
+                cleanToken,
                 studentEmail
         );
 
         response.put("success", result.isSuccess());
         response.put("message", result.getMessage());
+        response.put("courseName", result.getCourseName());
+        response.put("lectureNumber", result.getLectureNumber());
+        response.put("lectureDate", result.getLectureDate());
 
         return ResponseEntity.ok(response);
     }
@@ -106,17 +111,38 @@ public class StudentAttendanceQrController {
             return "redirect:/login";
         }
 
+        String cleanToken = cleanTokenString(sessionToken);
+
         QrAttendanceService.AttendanceResult result = qrAttendanceService.submitStudentAttendance(
-                sessionToken,
+                cleanToken,
                 studentEmail
         );
 
         if (result.isSuccess()) {
             redirectAttributes.addFlashAttribute("success", result.getMessage());
         } else {
-            redirectAttributes.addFlashAttribute("error", result.getMessage());
+            if (result.getMessage() != null && result.getMessage().toLowerCase().contains("already marked")) {
+                redirectAttributes.addFlashAttribute("success", result.getMessage() + " (Status: Present)");
+            } else {
+                redirectAttributes.addFlashAttribute("error", result.getMessage());
+            }
         }
 
         return "redirect:/student/scan-qr";
+    }
+
+    private String cleanTokenString(String raw) {
+        if (raw == null) return "";
+        String token = raw.trim();
+        if (token.contains("token=")) {
+            token = token.substring(token.indexOf("token=") + 6);
+            if (token.contains("&")) {
+                token = token.substring(0, token.indexOf("&"));
+            }
+            if (token.contains("#")) {
+                token = token.substring(0, token.indexOf("#"));
+            }
+        }
+        return token.trim();
     }
 }

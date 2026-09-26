@@ -34,10 +34,6 @@ public class AttendanceSession {
     private String facultyName;
     private String facultyEmail;
 
-    // Legacy location fields retained for database schema compatibility; not used in QR attendance
-    private Double latitude = 0.0;
-    private Double longitude = 0.0;
-    private Double radiusMeters = 0.0;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -89,30 +85,6 @@ public class AttendanceSession {
 
     public void setFacultyEmail(String facultyEmail) {
         this.facultyEmail = facultyEmail;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Double getRadiusMeters() {
-        return radiusMeters;
-    }
-
-    public void setRadiusMeters(Double radiusMeters) {
-        this.radiusMeters = radiusMeters;
     }
 
     public LocalDateTime getCreatedAt() {

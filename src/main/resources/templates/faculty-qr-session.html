@@ -400,6 +400,18 @@
     const sessionToken = /*[[${attendanceSession != null ? attendanceSession.sessionToken : ''}]]*/ '';
     const isExpiredInitially = /*[[${isExpired != null ? isExpired : false}]]*/ false;
 
+    // Initialize today's date for lectureDate input if present
+    document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('lectureDateInput');
+        if (dateInput && !dateInput.value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+    });
+
     if (sessionToken) {
         const timerBox = document.getElementById('timerBox');
         const countdownDisplay = document.getElementById('countdownDisplay');
@@ -407,7 +419,7 @@
         const qrImageElement = document.getElementById('qrImageElement');
 
         function updateTimerUI() {
-            if (secondsLeft <= 0) {
+            if (secondsLeft <= 0 || isExpiredInitially) {
                 countdownDisplay.textContent = "00:00";
                 timerBox.className = "timer-badge timer-expired";
                 if (expiredAlert) expiredAlert.classList.remove('d-none');
@@ -430,10 +442,11 @@
 
         // 1-second countdown interval
         const timerInterval = setInterval(() => {
-            if (secondsLeft > 0) {
+            if (secondsLeft > 0 && !isExpiredInitially) {
                 secondsLeft--;
                 updateTimerUI();
             } else {
+                secondsLeft = 0;
                 clearInterval(timerInterval);
                 updateTimerUI();
             }
@@ -458,7 +471,7 @@
                                     <td>${idx + 1}</td>
                                     <td class="fw-semibold">${att.studentName || ''}</td>
                                     <td>${att.studentEmail || ''}</td>
-                                    <td><span class="badge ${att.markingType === 'QR' ? 'bg-success' : 'bg-secondary'}">${att.markingType}</span></td>
+                                    <td><span class="badge ${att.markingType === 'QR' ? 'bg-success' : 'bg-secondary'}">${att.markingType || 'QR'}</span></td>
                                     <td><span class="badge bg-success">${att.status || 'Present'}</span></td>
                                 </tr>
                             `;
@@ -466,29 +479,18 @@
                         tableBody.innerHTML = html;
                     }
 
-                    if (data.expired && secondsLeft <= 0) {
+                    if (data.expired) {
+                        secondsLeft = 0;
+                        updateTimerUI();
+                        clearInterval(timerInterval);
                         clearInterval(pollInterval);
+                    } else if (data.secondsRemaining !== undefined && Math.abs(secondsLeft - data.secondsRemaining) > 3) {
+                        secondsLeft = data.secondsRemaining;
+                        updateTimerUI();
                     }
                 })
                 .catch(err => console.error("Polling error", err));
-        // Initialize today's date for lectureDate input if present
-        const dateInput = document.getElementById('lectureDateInput');
-        if (dateInput && !dateInput.value) {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
-        }
-    } else {
-        const dateInput = document.getElementById('lectureDateInput');
-        if (dateInput && !dateInput.value) {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
-        }
+        }, 3000);
     }
     /*]]>*/
 </script>

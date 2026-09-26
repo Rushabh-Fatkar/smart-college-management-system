@@ -43,9 +43,6 @@ public class Attendance {
     private String markingType = "MANUAL"; // "QR" or "MANUAL"
 
     private LocalDateTime timestamp;
-    private Double latitude;
-    private Double longitude;
-    private Double distanceMeters;
 
     public Attendance() {
     }
@@ -120,30 +117,6 @@ public class Attendance {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
-    }
-
-    public Double getDistanceMeters() {
-        return distanceMeters;
-    }
-
-    public void setDistanceMeters(Double distanceMeters) {
-        this.distanceMeters = distanceMeters;
     }
 
     public Integer getLectureNumber() {

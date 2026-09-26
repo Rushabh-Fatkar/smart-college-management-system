@@ -58,10 +58,6 @@ public class QrAttendanceService {
         session.setLectureDate(lectureDate != null && !lectureDate.trim().isEmpty() ? lectureDate.trim() : LocalDate.now().toString());
         session.setFacultyName(facultyName);
         session.setFacultyEmail(facultyEmail);
-        session.setLatitude(0.0);
-        session.setLongitude(0.0);
-        session.setRadiusMeters(0.0);
-
         LocalDateTime now = LocalDateTime.now();
         session.setCreatedAt(now);
         session.setExpiresAt(now.plusSeconds(120)); // Exactly 2 minutes validity
@@ -75,14 +71,6 @@ public class QrAttendanceService {
      */
     public AttendanceSession createSession(String courseName, String facultyName, String facultyEmail) {
         return createSession(courseName, 1, LocalDate.now().toString(), facultyName, facultyEmail);
-    }
-
-    /**
-     * Overloaded method for backward-compatibility with GPS signature.
-     */
-    public AttendanceSession createSession(String courseName, String facultyName, String facultyEmail,
-                                           Double latitude, Double longitude, Double customRadius) {
-        return createSession(courseName, facultyName, facultyEmail);
     }
 
     public Optional<AttendanceSession> getSessionByToken(String sessionToken) {
@@ -152,7 +140,8 @@ public class QrAttendanceService {
 
         // 4. Duplicate Check
         if (attendanceRepository.existsBySessionTokenAndStudentEmail(session.getSessionToken(), studentEmail)) {
-            return new AttendanceResult(false, "Attendance already marked for this session.");
+            return new AttendanceResult(false, "Attendance already marked for this lecture session.",
+                    session.getCourseName(), session.getLectureNumber(), session.getDisplayDate());
         }
 
         // 5. Record Attendance
@@ -172,21 +161,14 @@ public class QrAttendanceService {
             attendance.setTimestamp(LocalDateTime.now());
 
             attendanceRepository.save(attendance);
-            return new AttendanceResult(true, "Attendance marked successfully! Status: Present.");
+            return new AttendanceResult(true, "Attendance marked successfully! Status: Present.",
+                    session.getCourseName(), session.getLectureNumber(), session.getDisplayDate());
         } catch (DataIntegrityViolationException e) {
-            return new AttendanceResult(false, "Attendance already marked for this session.");
+            return new AttendanceResult(false, "Attendance already marked for this lecture session.",
+                    session.getCourseName(), session.getLectureNumber(), session.getDisplayDate());
         } catch (Exception e) {
             return new AttendanceResult(false, "Unable to record attendance: " + e.getMessage());
         }
-    }
-
-    /**
-     * Overloaded method for backward-compatibility. Ignores GPS parameters.
-     */
-    @Transactional
-    public AttendanceResult submitStudentAttendance(String sessionToken, String studentEmail,
-                                                     Double studentLat, Double studentLng) {
-        return submitStudentAttendance(sessionToken, studentEmail);
     }
 
     /**
@@ -285,27 +267,23 @@ public class QrAttendanceService {
         return sessionRepository.findByFacultyEmailOrderByCreatedAtDesc(facultyEmail);
     }
 
-    /**
-     * Utility method to calculate distance in meters using Haversine formula.
-     */
-    public static double calculateDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371000; // Radius of the earth in meters
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
     public static class AttendanceResult {
         private final boolean success;
         private final String message;
+        private final String courseName;
+        private final Integer lectureNumber;
+        private final String lectureDate;
 
         public AttendanceResult(boolean success, String message) {
+            this(success, message, null, null, null);
+        }
+
+        public AttendanceResult(boolean success, String message, String courseName, Integer lectureNumber, String lectureDate) {
             this.success = success;
             this.message = message;
+            this.courseName = courseName;
+            this.lectureNumber = lectureNumber;
+            this.lectureDate = lectureDate;
         }
 
         public boolean isSuccess() {
@@ -314,6 +292,18 @@ public class QrAttendanceService {
 
         public String getMessage() {
             return message;
+        }
+
+        public String getCourseName() {
+            return courseName;
+        }
+
+        public Integer getLectureNumber() {
+            return lectureNumber;
+        }
+
+        public String getLectureDate() {
+            return lectureDate;
         }
     }
 }
