@@ -161,10 +161,20 @@
                 <div class="card qr-card h-100 text-center p-4">
                     <div>
                         <span class="badge bg-primary px-3 py-2 rounded-pill mb-2">
-                            <i class="bi bi-broadcast me-1"></i> Active Attendance Session
+                            <i class="bi bi-broadcast me-1"></i> Active Lecture Attendance Session
                         </span>
-                        <h3 class="fw-bold mb-1" th:text="${attendanceSession.courseName}">Course Name</h3>
-                        <p class="text-muted small mb-3">Session Token: <code th:text="${attendanceSession.sessionToken}">token</code></p>
+                        <h2 class="fw-bold mb-1 text-primary">
+                            <i class="bi bi-journal-bookmark-fill me-1"></i><span th:text="${attendanceSession.courseName}">Course Name</span>
+                        </h2>
+                        <div class="d-flex justify-content-center align-items-center gap-2 my-2 flex-wrap">
+                            <span class="badge bg-dark fs-6 px-3 py-2">
+                                <i class="bi bi-hash"></i> Lecture <strong th:text="${attendanceSession.lectureNumber}">12</strong>
+                            </span>
+                            <span class="badge bg-info text-dark fs-6 px-3 py-2">
+                                <i class="bi bi-calendar3"></i> Date: <strong th:text="${attendanceSession.displayDate}">26-09-2026</strong>
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-2">Session Token: <code th:text="${attendanceSession.sessionToken}">token</code></p>
                     </div>
 
                     <!-- Countdown Timer -->
@@ -223,10 +233,12 @@
                     <!-- Session Metadata -->
                     <div class="bg-light rounded-3 p-3 mb-3 small">
                         <div class="row g-2">
-                            <div class="col-6"><strong>Classroom Lat:</strong> <span th:text="${attendanceSession.latitude}">0.0</span></div>
-                            <div class="col-6"><strong>Classroom Lng:</strong> <span th:text="${attendanceSession.longitude}">0.0</span></div>
-                            <div class="col-6"><strong>Allowed Radius:</strong> <span th:text="${attendanceSession.radiusMeters + ' m'}">100 m</span></div>
-                            <div class="col-6"><strong>Generated At:</strong> <span th:text="${attendanceSession.createdAt}">Just now</span></div>
+                            <div class="col-6"><strong>Subject / Course:</strong> <span class="fw-semibold text-primary" th:text="${attendanceSession.courseName}">Course</span></div>
+                            <div class="col-6"><strong>Lecture Number:</strong> <span class="badge bg-dark" th:text="${'Lecture #' + attendanceSession.lectureNumber}">Lecture #12</span></div>
+                            <div class="col-6"><strong>Lecture Date:</strong> <span class="fw-semibold" th:text="${attendanceSession.displayDate}">26-09-2026</span></div>
+                            <div class="col-6"><strong>Faculty:</strong> <span th:text="${attendanceSession.facultyName}">Faculty</span></div>
+                            <div class="col-6"><strong>QR Validity:</strong> <span class="text-success fw-semibold">2 Minutes</span></div>
+                            <div class="col-6"><strong>Generated At:</strong> <span th:text="${#temporals.format(attendanceSession.createdAt, 'HH:mm:ss dd-MM-yyyy')}">Just now</span></div>
                         </div>
                     </div>
 
@@ -239,7 +251,7 @@
                                     <th>Student Name</th>
                                     <th>Email</th>
                                     <th>Type</th>
-                                    <th>Distance</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="attendeesTableBody">
@@ -252,8 +264,7 @@
                                         <span class="badge bg-secondary" th:if="${att.markingType == 'MANUAL'}">Manual</span>
                                     </td>
                                     <td>
-                                        <span th:if="${att.distanceMeters != null}" th:text="${att.distanceMeters + ' m'}">0 m</span>
-                                        <span th:if="${att.distanceMeters == null}">-</span>
+                                        <span class="badge bg-success" th:text="${att.status != null ? att.status : 'Present'}">Present</span>
                                     </td>
                                 </tr>
 								<tr th:if="${attendees == null or #lists.isEmpty(attendees)}" id="noAttendeesRow">
@@ -279,49 +290,50 @@
                         <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex p-3 mb-2">
                             <i class="bi bi-qr-code-scan fs-1"></i>
                         </div>
-                        <h2 class="fw-bold">Generate Attendance QR Code</h2>
-                        <p class="text-muted">Generate a secure, location-verified QR code valid for exactly 2 minutes for your lecture.</p>
+                        <h2 class="fw-bold">Generate Lecture Attendance QR Code</h2>
+                        <p class="text-muted">Create an independent, date-wise and lecture-wise QR session valid for exactly 2 minutes.</p>
                     </div>
 
                     <form th:action="@{/faculty/generate-qr}" method="post" id="qrGenerateForm">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Select Course / Class <span class="text-danger">*</span></label>
+                        <!-- Course / Subject Selection -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Select Course / Subject <span class="text-danger">*</span></label>
                             <select name="courseName" class="form-select form-select-lg" required>
-                                <option value="">-- Choose Course --</option>
+                                <option value="">-- Choose Course / Subject --</option>
                                 <option th:each="course : ${courses}" th:value="${course.courseName}" th:text="${course.courseName + ' (' + course.courseCode + ')'}"></option>
                             </select>
                         </div>
 
-                        <!-- Classroom Geolocation -->
-                        <div class="card bg-light border-0 p-3 mb-4 rounded-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold mb-0">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> Classroom Location Coordinates
-                                </h6>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="btnGetLocation">
-                                    <i class="bi bi-crosshair me-1"></i> Fetch Current GPS
-                                </button>
+                        <!-- Lecture Number & Lecture Date Row -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Lecture Number <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white"><i class="bi bi-hash text-primary"></i></span>
+                                    <input type="number" name="lectureNumber" class="form-control form-control-lg"
+                                           placeholder="e.g. 12" min="1" max="999" required value="1">
+                                </div>
+                                <small class="text-muted">Lecture / period number (e.g. 12, 13, 5)</small>
                             </div>
-                            <p class="small text-muted mb-3">
-                                The system records your classroom GPS location so students scanning the QR must physically be in the classroom.
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Lecture Date <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white"><i class="bi bi-calendar3 text-primary"></i></span>
+                                    <input type="date" name="lectureDate" id="lectureDateInput" class="form-control form-control-lg" required>
+                                </div>
+                                <small class="text-muted">Date of lecture (defaults to today)</small>
+                            </div>
+                        </div>
+
+                        <!-- QR Session Info -->
+                        <div class="card bg-light border-0 p-3 mb-4 rounded-3 text-center">
+                            <div class="d-flex align-items-center justify-content-center text-primary mb-1">
+                                <i class="bi bi-clock-history me-2 fs-5"></i>
+                                <span class="fw-semibold">2-Minute Expiration Rule</span>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                This QR code will be active for exactly 120 seconds for this lecture session only. Students can scan it immediately using their device camera or enter the session code.
                             </p>
-                            <div class="row g-2">
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Latitude</label>
-                                    <input type="number" step="any" class="form-control form-control-sm" name="latitude" id="inputLat" placeholder="Auto-detected">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Longitude</label>
-                                    <input type="number" step="any" class="form-control form-control-sm" name="longitude" id="inputLng" placeholder="Auto-detected">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small text-muted">Allowed Radius (Meters)</label>
-                                    <input type="number" class="form-control form-control-sm" name="radiusMeters" th:value="${defaultRadius != null ? defaultRadius : 100}" min="10" max="1000">
-                                </div>
-                            </div>
-                            <div id="locStatus" class="small mt-2 text-primary">
-                                <i class="bi bi-info-circle me-1"></i> Click 'Fetch Current GPS' or allow location access.
-                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
@@ -332,12 +344,14 @@
 
                 <!-- Previous Sessions History -->
                 <div class="card qr-card p-4 mt-4" th:if="${previousSessions != null and !#lists.isEmpty(previousSessions)}">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Your Recent QR Sessions</h5>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Your Recent Lecture Sessions</h5>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Course</th>
+                                    <th>Subject / Course</th>
+                                    <th>Lecture No.</th>
+                                    <th>Lecture Date</th>
                                     <th>Created At</th>
                                     <th>Status</th>
                                     <th>Action</th>
@@ -345,8 +359,14 @@
                             </thead>
                             <tbody>
                                 <tr th:each="s : ${previousSessions}">
-                                    <td class="fw-semibold" th:text="${s.courseName}">Course</td>
-                                    <td th:text="${s.createdAt}">Time</td>
+                                    <td class="fw-semibold text-primary" th:text="${s.courseName}">Course</td>
+                                    <td>
+                                        <span class="badge bg-dark" th:text="${'Lecture #' + (s.lectureNumber != null ? s.lectureNumber : '-')}">Lecture #12</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border" th:text="${s.displayDate}">26-09-2026</span>
+                                    </td>
+                                    <td th:text="${s.createdAt != null ? #temporals.format(s.createdAt, 'HH:mm:ss dd-MM-yyyy') : '-'}">Time</td>
                                     <td>
                                         <span class="badge bg-danger" th:if="${s.expired}">Expired</span>
                                         <span class="badge bg-success" th:unless="${s.expired}">Active</span>
@@ -372,39 +392,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Geolocation & Countdown Timer Script -->
+<!-- Countdown Timer & Live Polling Script -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // 1. Geolocation Fetcher for QR Generation form
-    const btnGetLocation = document.getElementById('btnGetLocation');
-    if (btnGetLocation) {
-        btnGetLocation.addEventListener('click', function () {
-            const locStatus = document.getElementById('locStatus');
-            if (navigator.geolocation) {
-                locStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Requesting GPS location...';
-                navigator.geolocation.getCurrentPosition(
-                    function (pos) {
-                        document.getElementById('inputLat').value = pos.coords.latitude.toFixed(6);
-                        document.getElementById('inputLng').value = pos.coords.longitude.toFixed(6);
-                        locStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> GPS coordinates captured successfully!</span>';
-                    },
-                    function (err) {
-                        locStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i> Location permission denied or unavailable. Default classroom location will be used.</span>';
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            } else {
-                locStatus.innerText = 'Geolocation is not supported by this browser.';
-            }
-        });
-
-        // Automatically trigger on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            if (btnGetLocation) btnGetLocation.click();
-        });
-    }
-
-    // 2. Countdown Timer & Live Polling for Active Session
+    // Countdown Timer & Live Polling for Active Session
     let secondsLeft = /*[[${secondsRemaining != null ? secondsRemaining : 0}]]*/ 0;
     const sessionToken = /*[[${attendanceSession != null ? attendanceSession.sessionToken : ''}]]*/ '';
     const isExpiredInitially = /*[[${isExpired != null ? isExpired : false}]]*/ false;
@@ -468,7 +459,7 @@
                                     <td class="fw-semibold">${att.studentName || ''}</td>
                                     <td>${att.studentEmail || ''}</td>
                                     <td><span class="badge ${att.markingType === 'QR' ? 'bg-success' : 'bg-secondary'}">${att.markingType}</span></td>
-                                    <td>${att.distanceMeters !== null && att.distanceMeters !== undefined ? att.distanceMeters + ' m' : '-'}</td>
+                                    <td><span class="badge bg-success">${att.status || 'Present'}</span></td>
                                 </tr>
                             `;
                         });
@@ -480,7 +471,24 @@
                     }
                 })
                 .catch(err => console.error("Polling error", err));
-        }, 3000);
+        // Initialize today's date for lectureDate input if present
+        const dateInput = document.getElementById('lectureDateInput');
+        if (dateInput && !dateInput.value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+    } else {
+        const dateInput = document.getElementById('lectureDateInput');
+        if (dateInput && !dateInput.value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
     }
     /*]]>*/
 </script>

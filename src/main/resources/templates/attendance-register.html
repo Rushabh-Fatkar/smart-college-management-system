@@ -80,27 +80,60 @@
                         <input type="hidden" th:field="*{id}">
 
                         <div class="mb-3">
-                            <label class="form-label">Student Name</label>
+                            <label class="form-label fw-bold">Student Name</label>
                             <input type="text"
                                    class="form-control"
                                    th:field="*{studentName}"
                                    placeholder="Enter Student Name"
+                                   list="studentsDatalist"
                                    required>
+                            <datalist id="studentsDatalist">
+                                <option th:each="st : ${students}" th:value="${st.name}" th:text="${st.name + ' (' + st.course + ')'}"></option>
+                            </datalist>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Status</label>
+                            <label class="form-label fw-bold">Course / Subject</label>
+                            <input type="text"
+                                   class="form-control"
+                                   th:field="*{courseName}"
+                                   placeholder="Course / Subject name (e.g. ACN)"
+                                   list="coursesDatalist"
+                                   required>
+                            <datalist id="coursesDatalist">
+                                <option th:each="c : ${courses}" th:value="${c.courseName}" th:text="${c.courseName}"></option>
+                            </datalist>
+                        </div>
 
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Lecture Number</label>
+                                <input type="number"
+                                       class="form-control"
+                                       th:field="*{lectureNumber}"
+                                       min="1"
+                                       max="999"
+                                       placeholder="e.g. 12"
+                                       required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Lecture Date</label>
+                                <input type="date"
+                                       class="form-control"
+                                       th:field="*{date}"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Status</label>
                             <select class="form-select"
                                     th:field="*{status}"
                                     required>
-
                                 <option value="">Select Status</option>
                                 <option value="Present">Present</option>
                                 <option value="Absent">Absent</option>
-
                             </select>
-
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">

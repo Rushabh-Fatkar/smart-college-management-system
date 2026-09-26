@@ -31,7 +31,6 @@ public class StudentAttendanceQrController {
     /**
      * Student QR Scanner Page:
      * - Requests HTML5 Camera access.
-     * - Requests Browser Geolocation.
      * - Provides manual session token input fallback.
      */
     @GetMapping("/student/scan-qr")
@@ -53,14 +52,12 @@ public class StudentAttendanceQrController {
 
     /**
      * AJAX Endpoint for Camera QR scanner:
-     * Submits scanned token and current geolocation coordinates.
+     * Submits scanned token directly without GPS or location dependency.
      */
     @PostMapping("/student/api/submit-qr-attendance")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> submitQrAttendanceAjax(
             @RequestParam String sessionToken,
-            @RequestParam(required = false) Double latitude,
-            @RequestParam(required = false) Double longitude,
             HttpSession session) {
 
         Map<String, Object> response = new HashMap<>();
@@ -81,9 +78,7 @@ public class StudentAttendanceQrController {
 
         QrAttendanceService.AttendanceResult result = qrAttendanceService.submitStudentAttendance(
                 sessionToken,
-                studentEmail,
-                latitude,
-                longitude
+                studentEmail
         );
 
         response.put("success", result.isSuccess());
@@ -98,8 +93,6 @@ public class StudentAttendanceQrController {
     @PostMapping("/student/submit-qr-attendance")
     public String submitQrAttendanceForm(
             @RequestParam String sessionToken,
-            @RequestParam(required = false) Double latitude,
-            @RequestParam(required = false) Double longitude,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
 
@@ -115,9 +108,7 @@ public class StudentAttendanceQrController {
 
         QrAttendanceService.AttendanceResult result = qrAttendanceService.submitStudentAttendance(
                 sessionToken,
-                studentEmail,
-                latitude,
-                longitude
+                studentEmail
         );
 
         if (result.isSuccess()) {

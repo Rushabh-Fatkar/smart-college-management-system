@@ -36,6 +36,35 @@ public class AttendanceService {
     public Attendance findByStudentNameAndDate(String studentName, String date) {
         return attendanceRepository.findByStudentNameAndDate(studentName, date);
     }
+
+    public Attendance findByStudentNameAndCourseNameAndLectureNumberAndDate(String studentName, String courseName, Integer lectureNumber, String date) {
+        return attendanceRepository.findByStudentNameAndCourseNameAndLectureNumberAndDate(studentName, courseName, lectureNumber, date);
+    }
+
+    public boolean isAlreadyMarkedForLecture(String studentName, String studentEmail, String courseName, Integer lectureNumber, String date) {
+        if (studentEmail != null && !studentEmail.trim().isEmpty()) {
+            if (attendanceRepository.existsByCourseNameAndLectureNumberAndDateAndStudentEmail(courseName, lectureNumber, date, studentEmail.trim())) {
+                return true;
+            }
+        }
+        if (studentName != null && !studentName.trim().isEmpty()) {
+            return attendanceRepository.existsByCourseNameAndLectureNumberAndDateAndStudentName(courseName, lectureNumber, date, studentName.trim());
+        }
+        return false;
+    }
+
+    public List<Attendance> getAllAttendanceOrdered() {
+        return attendanceRepository.findAllByOrderByDateDescIdDesc();
+    }
+
+    public List<Attendance> getAttendanceByStudentEmail(String studentEmail) {
+        return attendanceRepository.findByStudentEmailOrderByDateDesc(studentEmail);
+    }
+
+    public List<Attendance> getAttendanceByStudentName(String studentName) {
+        return attendanceRepository.findByStudentNameOrderByDateDesc(studentName);
+    }
+
     public long getTotalAttendanceByStudent(String studentName) {
         return attendanceRepository.getTotalAttendanceByStudent(studentName);
     }

@@ -27,4 +27,18 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByStudentEmail(String studentEmail);
 
     List<Attendance> findByCourseNameAndDate(String courseName, String date);
+
+    boolean existsByCourseNameAndLectureNumberAndDateAndStudentEmail(String courseName, Integer lectureNumber, String date, String studentEmail);
+
+    boolean existsByCourseNameAndLectureNumberAndDateAndStudentName(String courseName, Integer lectureNumber, String date, String studentName);
+
+    Attendance findByStudentNameAndCourseNameAndLectureNumberAndDate(String studentName, String courseName, Integer lectureNumber, String date);
+
+    List<Attendance> findByStudentEmailOrderByDateDesc(String studentEmail);
+
+    List<Attendance> findByStudentNameOrderByDateDesc(String studentName);
+
+    List<Attendance> findAllByOrderByDateDescIdDesc();
+
+    List<Attendance> findByCourseNameAndLectureNumberAndDate(String courseName, Integer lectureNumber, String date);
 }

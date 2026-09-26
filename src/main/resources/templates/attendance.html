@@ -785,11 +785,12 @@
             <table class="table custom-attendance-table align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Sr.No</th>
+                        <th style="width: 70px;">Sr.No</th>
                         <th>Student Name</th>
-                        <th>Course Name</th>
-                        <th>Date</th>
-                        <th style="width: 150px;">Status</th>
+                        <th>Course / Subject</th>
+                        <th style="width: 130px;">Lecture No.</th>
+                        <th style="width: 140px;">Date</th>
+                        <th style="width: 140px;">Status</th>
                         <th style="width: 180px;" class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -824,11 +825,19 @@
                             </span>
                         </td>
 
+                        <!-- Lecture Number -->
+                        <td>
+                            <span class="badge bg-dark px-2.5 py-1.5" th:if="${attendance.lectureNumber != null}">
+                                <i class="bi bi-hash"></i> Lecture <span th:text="${attendance.lectureNumber}">12</span>
+                            </span>
+                            <span class="text-muted small" th:unless="${attendance.lectureNumber != null}">-</span>
+                        </td>
+
                         <!-- Date -->
                         <td>
                             <span class="date-badge">
                                 <i class="bi bi-calendar3"></i>
-                                <span th:text="${attendance.date}">2026-08-29</span>
+                                <span th:text="${attendance.displayDate}">26-09-2026</span>
                             </span>
                         </td>
 
@@ -886,7 +895,7 @@
 
                     <!-- No Search Results Row (Dynamic JavaScript Toggle) -->
                     <tr id="noSearchRow" style="display: none;">
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
                             <div class="empty-state-container">
                                 <div class="empty-state-icon">
                                     <i class="bi bi-search"></i>
@@ -902,7 +911,7 @@
 
                     <!-- Empty List (When Database Has No Attendance) -->
                     <tr th:if="${#lists.isEmpty(attendanceList)}">
-                        <td colspan="6" class="text-center py-5">
+                        <td colspan="7" class="text-center py-5">
                             <div class="empty-state-container">
                                 <div class="empty-state-icon">
                                     <i class="bi bi-calendar-check"></i>

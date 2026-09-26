@@ -40,11 +40,8 @@ public class FacultyQrAttendanceController {
     @Autowired
     private CourseService courseService;
 
-    @Value("${attendance.qr.allowed-radius-meters:100.0}")
-    private double defaultRadius;
-
     /**
-     * Step 1: Faculty selects course and captures classroom location.
+     * Step 1: Faculty selects course to generate 2-minute QR code.
      */
     @GetMapping("/faculty/qr-attendance")
     public String showQrGenerationPage(Model model, HttpSession session) {
@@ -57,7 +54,6 @@ public class FacultyQrAttendanceController {
 
         List<Course> courses = courseService.getAllCourses();
         model.addAttribute("courses", courses != null ? courses : Collections.emptyList());
-        model.addAttribute("defaultRadius", defaultRadius);
 
         String facultyEmail = (String) session.getAttribute("userEmail");
         if (facultyEmail != null) {
@@ -71,13 +67,12 @@ public class FacultyQrAttendanceController {
     }
 
     /**
-     * Step 2: Faculty clicks "Generate QR" -> creates new 2-minute unique session.
+     * Step 2: Faculty clicks "Generate QR" -> creates new 2-minute unique session for specific lecture and date.
      */
     @PostMapping("/faculty/generate-qr")
     public String generateQrSession(@RequestParam String courseName,
-                                    @RequestParam(required = false) Double latitude,
-                                    @RequestParam(required = false) Double longitude,
-                                    @RequestParam(required = false) Double radiusMeters,
+                                    @RequestParam(defaultValue = "1") Integer lectureNumber,
+                                    @RequestParam(required = false) String lectureDate,
                                     HttpSession session,
                                     RedirectAttributes redirectAttributes) {
         String role = (String) session.getAttribute("role");
@@ -90,21 +85,23 @@ public class FacultyQrAttendanceController {
             return "redirect:/faculty/qr-attendance";
         }
 
+        if (lectureNumber == null || lectureNumber < 1) {
+            lectureNumber = 1;
+        }
+
+        if (lectureDate == null || lectureDate.trim().isEmpty()) {
+            lectureDate = java.time.LocalDate.now().toString();
+        }
+
         String facultyUsername = (String) session.getAttribute("username");
         String facultyEmail = (String) session.getAttribute("userEmail");
 
-        // If faculty device coordinates were not provided or denied, use 0.0 default or prompt
-        Double facultyLat = (latitude != null) ? latitude : 0.0;
-        Double facultyLng = (longitude != null) ? longitude : 0.0;
-        Double radius = (radiusMeters != null && radiusMeters > 0) ? radiusMeters : defaultRadius;
-
         AttendanceSession newSession = qrAttendanceService.createSession(
                 courseName.trim(),
+                lectureNumber,
+                lectureDate.trim(),
                 facultyUsername,
-                facultyEmail,
-                facultyLat,
-                facultyLng,
-                radius
+                facultyEmail
         );
 
         return "redirect:/faculty/session/" + newSession.getSessionToken();
@@ -207,6 +204,10 @@ public class FacultyQrAttendanceController {
         data.put("secondsRemaining", secondsRemaining);
         data.put("totalPresent", attendees != null ? attendees.size() : 0);
         data.put("attendees", attendees != null ? attendees : Collections.emptyList());
+        data.put("courseName", attendanceSession.getCourseName());
+        data.put("lectureNumber", attendanceSession.getLectureNumber());
+        data.put("lectureDate", attendanceSession.getLectureDate());
+        data.put("displayDate", attendanceSession.getDisplayDate());
 
         return ResponseEntity.ok(data);
     }

@@ -99,4 +99,68 @@ class QrAttendanceServiceTest {
         mark.calculateGrade();
         assertEquals("F", mark.getGrade());
     }
+
+    @Test
+    void testLectureWiseAttendanceSessionCreation() {
+        AttendanceSession session = new AttendanceSession();
+        session.setCourseName("ACN");
+        session.setLectureNumber(12);
+        session.setLectureDate("2026-09-26");
+
+        assertEquals("ACN", session.getCourseName());
+        assertEquals(12, session.getLectureNumber());
+        assertEquals("2026-09-26", session.getLectureDate());
+        assertEquals("26-09-2026", session.getDisplayDate());
+    }
+
+    @Test
+    void testLectureWiseAttendanceDisplayDateFormatting() {
+        com.smartcollege.entity.Attendance att = new com.smartcollege.entity.Attendance();
+        att.setCourseName("ACN");
+        att.setLectureNumber(12);
+        att.setDate("2026-09-26");
+        att.setLectureDate("2026-09-26");
+        att.setStatus("Present");
+
+        assertEquals("26-09-2026", att.getDisplayDate());
+        assertEquals(12, att.getLectureNumber());
+        assertEquals("ACN", att.getCourseName());
+        assertEquals("Present", att.getStatus());
+
+        // Already formatted DD-MM-YYYY
+        com.smartcollege.entity.Attendance att2 = new com.smartcollege.entity.Attendance();
+        att2.setDate("26-09-2026");
+        assertEquals("26-09-2026", att2.getDisplayDate());
+    }
+
+    @Test
+    void testSeparateLectureSessionsNotMerged() {
+        // Lecture 12 session
+        AttendanceSession session12 = new AttendanceSession();
+        session12.setCourseName("ACN");
+        session12.setLectureNumber(12);
+        session12.setLectureDate("2026-09-26");
+        session12.setSessionToken("token_acn_12");
+
+        // Lecture 13 session
+        AttendanceSession session13 = new AttendanceSession();
+        session13.setCourseName("ACN");
+        session13.setLectureNumber(13);
+        session13.setLectureDate("2026-09-26");
+        session13.setSessionToken("token_acn_13");
+
+        // OSY Lecture 5 session
+        AttendanceSession sessionOsy = new AttendanceSession();
+        sessionOsy.setCourseName("OSY");
+        sessionOsy.setLectureNumber(5);
+        sessionOsy.setLectureDate("2026-09-26");
+        sessionOsy.setSessionToken("token_osy_5");
+
+        // Assert distinct session tokens and lecture numbers
+        assertFalse(session12.getSessionToken().equals(session13.getSessionToken()));
+        assertFalse(session12.getSessionToken().equals(sessionOsy.getSessionToken()));
+        assertEquals(12, session12.getLectureNumber());
+        assertEquals(13, session13.getLectureNumber());
+        assertEquals(5, sessionOsy.getLectureNumber());
+    }
 }

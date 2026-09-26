@@ -13,6 +13,10 @@ import jakarta.persistence.UniqueConstraint;
 @Entity
 @Table(name = "attendance", uniqueConstraints = {
     @UniqueConstraint(name = "uk_session_student_email", columnNames = {"sessionToken", "studentEmail"})
+}, indexes = {
+    @jakarta.persistence.Index(name = "idx_att_sess_token", columnList = "sessionToken"),
+    @jakarta.persistence.Index(name = "idx_att_student_course_lec", columnList = "studentEmail, courseName, lectureNumber, date"),
+    @jakarta.persistence.Index(name = "idx_att_course_lec_date", columnList = "courseName, lectureNumber, date")
 })
 public class Attendance {
 
@@ -24,6 +28,12 @@ public class Attendance {
     private String courseName;
     private String date;
     private String status;
+
+    @Column(name = "lecture_number")
+    private Integer lectureNumber;
+
+    @Column(name = "lecture_date", length = 32)
+    private String lectureDate;
 
     // Secure QR Code Attendance & Audit additions
     private String studentEmail;
@@ -134,5 +144,33 @@ public class Attendance {
 
     public void setDistanceMeters(Double distanceMeters) {
         this.distanceMeters = distanceMeters;
+    }
+
+    public Integer getLectureNumber() {
+        return lectureNumber;
+    }
+
+    public void setLectureNumber(Integer lectureNumber) {
+        this.lectureNumber = lectureNumber;
+    }
+
+    public String getLectureDate() {
+        return lectureDate != null ? lectureDate : date;
+    }
+
+    public void setLectureDate(String lectureDate) {
+        this.lectureDate = lectureDate;
+        if (this.date == null) {
+            this.date = lectureDate;
+        }
+    }
+
+    public String getDisplayDate() {
+        String target = lectureDate != null ? lectureDate : date;
+        if (target != null && target.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            String[] parts = target.split("-");
+            return parts[2] + "-" + parts[1] + "-" + parts[0];
+        }
+        return target != null ? target : "";
     }
 }

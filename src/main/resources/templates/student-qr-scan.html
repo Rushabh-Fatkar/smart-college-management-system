@@ -117,24 +117,19 @@
                     </span>
                     <h2 class="fw-bold">Mark Attendance via QR</h2>
                     <p class="text-muted small">
-                        Scan the 2-minute attendance QR code displayed by your faculty in the classroom.
+                        Scan the 2-minute attendance QR code displayed by your faculty.
                     </p>
                 </div>
 
-                <!-- Geolocation Status Banner -->
+                <!-- Session Validity Banner -->
                 <div class="card bg-light border-0 p-3 mb-4 rounded-3 text-center">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <div>
-                            <span id="geoBadge" class="geo-pill bg-warning bg-opacity-25 text-warning border border-warning">
-                                <i class="bi bi-geo-alt-fill"></i> <span id="geoStatusText">Acquiring GPS Location...</span>
-                            </span>
-                        </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnRetryGeo">
-                            <i class="bi bi-arrow-repeat me-1"></i> Refresh GPS
-                        </button>
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <span class="geo-pill bg-success bg-opacity-25 text-success border border-success">
+                            <i class="bi bi-shield-check me-1"></i> <span>Ready to Scan &bull; 2-Minute QR Validity</span>
+                        </span>
                     </div>
-                    <small class="text-muted mt-2 text-start">
-                        <i class="bi bi-shield-lock me-1"></i> Location permission is strictly required by the server to verify you are physically inside the classroom.
+                    <small class="text-muted mt-2">
+                        Point your camera at the active lecture QR code or enter the session code manually below.
                     </small>
                 </div>
 
@@ -161,8 +156,6 @@
                 </div>
 
                 <form th:action="@{/student/submit-qr-attendance}" method="post" id="manualQrForm">
-                    <input type="hidden" name="latitude" id="formLat">
-                    <input type="hidden" name="longitude" id="formLng">
 
                     <div class="input-group mb-3">
                         <span class="input-group-text"><i class="bi bi-key-fill text-primary"></i></span>
@@ -199,63 +192,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    let studentLat = null;
-    let studentLng = null;
     let html5QrCode = null;
     let isSubmitting = false;
 
-    // 1. Fetch Student GPS Location
-    function acquireLocation() {
-        const geoBadge = document.getElementById('geoBadge');
-        const geoStatusText = document.getElementById('geoStatusText');
-
-        if (navigator.geolocation) {
-            geoStatusText.textContent = "Acquiring GPS location...";
-            geoBadge.className = "geo-pill bg-warning bg-opacity-25 text-warning border border-warning";
-
-            navigator.geolocation.getCurrentPosition(
-                function (pos) {
-                    studentLat = pos.coords.latitude;
-                    studentLng = pos.coords.longitude;
-                    document.getElementById('formLat').value = studentLat;
-                    document.getElementById('formLng').value = studentLng;
-
-                    geoBadge.className = "geo-pill bg-success bg-opacity-25 text-success border border-success";
-                    geoStatusText.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> Location Verified (${studentLat.toFixed(4)}, ${studentLng.toFixed(4)})`;
-                },
-                function (err) {
-                    studentLat = null;
-                    studentLng = null;
-                    geoBadge.className = "geo-pill bg-danger bg-opacity-25 text-danger border border-danger";
-                    geoStatusText.innerHTML = `<i class="bi bi-x-circle-fill me-1"></i> Location Permission Denied: ${err.message}`;
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-            );
-        } else {
-            geoBadge.className = "geo-pill bg-danger bg-opacity-25 text-danger border border-danger";
-            geoStatusText.textContent = "Geolocation not supported by device.";
-        }
-    }
-
-    document.getElementById('btnRetryGeo').addEventListener('click', acquireLocation);
-
-    // 2. Submit QR Code Attendance via AJAX
+    // 1. Submit QR Code Attendance via AJAX
     function submitAttendance(token) {
         if (isSubmitting) return;
 
-        if (!studentLat || !studentLng) {
-            showResult(false, "Location Permission Required", "Please allow GPS location permission so your classroom presence can be verified.");
-            acquireLocation();
-            return;
-        }
-
         isSubmitting = true;
-        showResult('loading', "Verifying Attendance...", "Validating session code, 2-minute expiration, and classroom distance on server...");
+        showResult('loading', "Verifying Attendance...", "Validating session code and 2-minute expiration on server...");
 
         const formData = new FormData();
         formData.append('sessionToken', token);
-        formData.append('latitude', studentLat);
-        formData.append('longitude', studentLng);
 
         fetch('/student/api/submit-qr-attendance', {
             method: 'POST',
@@ -361,7 +309,6 @@
 
     // Auto-initialize on page load
     window.addEventListener('DOMContentLoaded', () => {
-        acquireLocation();
         startCamera();
     });
 </script>

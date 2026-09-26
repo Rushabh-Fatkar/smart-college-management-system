@@ -20,4 +20,8 @@ public interface AttendanceSessionRepository extends JpaRepository<AttendanceSes
     List<AttendanceSession> findByFacultyEmailAndActiveTrue(String facultyEmail);
 
     List<AttendanceSession> findByFacultyEmailAndCourseNameAndActiveTrue(String facultyEmail, String courseName);
+
+    List<AttendanceSession> findByCourseNameAndLectureNumberAndLectureDate(String courseName, Integer lectureNumber, String lectureDate);
+
+    List<AttendanceSession> findAllByOrderByCreatedAtDesc();
 }

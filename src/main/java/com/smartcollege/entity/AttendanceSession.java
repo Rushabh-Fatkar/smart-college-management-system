@@ -10,7 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "attendance_session")
+@Table(name = "attendance_session", indexes = {
+    @jakarta.persistence.Index(name = "idx_att_sess_course_lec_date", columnList = "courseName, lectureNumber, lectureDate")
+})
 public class AttendanceSession {
 
     @Id
@@ -23,19 +25,19 @@ public class AttendanceSession {
     @Column(nullable = false)
     private String courseName;
 
+    @Column(name = "lecture_number")
+    private Integer lectureNumber;
+
+    @Column(name = "lecture_date", length = 32)
+    private String lectureDate;
+
     private String facultyName;
     private String facultyEmail;
 
-    // Faculty classroom coordinates
-    @Column(nullable = false)
-    private Double latitude;
-
-    @Column(nullable = false)
-    private Double longitude;
-
-    // Allowed radius in meters (e.g. 50 - 100 meters)
-    @Column(nullable = false)
-    private Double radiusMeters;
+    // Legacy location fields retained for database schema compatibility; not used in QR attendance
+    private Double latitude = 0.0;
+    private Double longitude = 0.0;
+    private Double radiusMeters = 0.0;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -139,5 +141,29 @@ public class AttendanceSession {
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
+    }
+
+    public Integer getLectureNumber() {
+        return lectureNumber;
+    }
+
+    public void setLectureNumber(Integer lectureNumber) {
+        this.lectureNumber = lectureNumber;
+    }
+
+    public String getLectureDate() {
+        return lectureDate;
+    }
+
+    public void setLectureDate(String lectureDate) {
+        this.lectureDate = lectureDate;
+    }
+
+    public String getDisplayDate() {
+        if (lectureDate != null && lectureDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            String[] parts = lectureDate.split("-");
+            return parts[2] + "-" + parts[1] + "-" + parts[0];
+        }
+        return lectureDate != null ? lectureDate : "";
     }
 }
