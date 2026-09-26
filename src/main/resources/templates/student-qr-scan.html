@@ -205,231 +205,576 @@
     let isSubmitting = false;
     let hasScannedSuccessfully = false;
 
-    // Helper: Safely extract session token from URL or raw string
+    // Extract session token from QR text / URL
     function extractToken(raw) {
         if (!raw) return '';
+
         let token = raw.trim();
+
         try {
             if (token.startsWith('http://') || token.startsWith('https://')) {
                 const url = new URL(token);
                 const t = url.searchParams.get('token');
-                if (t) return t.trim();
+
+                if (t) {
+                    return t.trim();
+                }
             }
-        } catch (e) {}
+        } catch (e) {
+            // Not a URL, continue
+        }
+
         if (token.includes('token=')) {
             const parts = token.split('token=');
+
             if (parts.length > 1) {
-                return parts[1].split('&')[0].split('#')[0].trim();
+                return parts[1]
+                    .split('&')[0]
+                    .split('#')[0]
+                    .trim();
             }
         }
+
         return token;
     }
 
-    // 1. Submit QR Code Attendance via AJAX
-    function submitAttendance(rawToken) {
+
+    // Submit attendance
+    async function submitAttendance(rawToken) {
+
         const token = extractToken(rawToken);
+
         if (!token) {
-            showResult('error', "Invalid QR Code", "The scanned code did not contain a valid session identifier.");
+            showResult(
+                'error',
+                'Invalid QR Code',
+                'The scanned code did not contain a valid session identifier.'
+            );
             return;
         }
 
-        if (isSubmitting) return;
-        isSubmitting = true;
+        if (isSubmitting) {
+            return;
+        }
 
-        showResult('loading', "Verifying Attendance...", "Validating session and recording attendance on server...");
+        showResult(
+            'loading',
+            'Verifying Attendance...',
+            'Validating session and recording attendance on server...'
+        );
 
         const formData = new FormData();
         formData.append('sessionToken', token);
 
-        fetch('/student/api/submit-qr-attendance', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            isSubmitting = false;
+        try {
 
-            // Stop camera on server response
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    const reader = document.getElementById('qr-reader');
-                    if (reader) {
-                        reader.innerHTML = `
-                            <div class="text-white text-center p-4">
-                                <i class="bi bi-camera-fill fs-1 text-secondary mb-2 d-block"></i>
-                                <p class="small mb-0">Camera paused after scan.<br>Click 'Scan Another QR' if you have another lecture.</p>
-                            </div>
-                        `;
+            const response = await fetch(
+                '/student/api/submit-qr-attendance',
+                {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
                     }
-                }).catch(() => {});
+                }
+            );
+
+            const contentType = response.headers.get('content-type') || '';
+            const responseText = await response.text();
+
+            let data;
+
+            if (contentType.includes('application/json')) {
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error('Invalid JSON response from server.');
+                }
+            } else {
+                throw new Error(
+                    'Server returned an unexpected response. HTTP ' +
+                    response.status
+                );
             }
 
+            // Stop camera after server response
+            await stopCameraSilently();
+
             let detailsHtml = '';
-            if (data.courseName || data.lectureNumber || data.lectureDate) {
+
+            if (
+                data.courseName ||
+                data.lectureNumber ||
+                data.lectureDate
+            ) {
                 detailsHtml = `
                     <div class="d-flex flex-wrap gap-2 align-items-center mt-1">
-                        <span class="badge bg-primary">Course: ${data.courseName || ''}</span>
-                        <span class="badge bg-dark">Lecture #${data.lectureNumber || ''}</span>
-                        <span class="badge bg-secondary">Date: ${data.lectureDate || ''}</span>
-                        <span class="badge bg-success">Status: Present</span>
+
+                        ${
+                            data.courseName
+                                ? `<span class="badge bg-primary">
+                                    Course: ${data.courseName}
+                                   </span>`
+                                : ''
+                        }
+
+                        ${
+                            data.lectureNumber
+                                ? `<span class="badge bg-dark">
+                                    Lecture #${data.lectureNumber}
+                                   </span>`
+                                : ''
+                        }
+
+                        ${
+                            data.lectureDate
+                                ? `<span class="badge bg-secondary">
+                                    Date: ${data.lectureDate}
+                                   </span>`
+                                : ''
+                        }
+
+                        ${
+                            data.success
+                                ? `<span class="badge bg-success">
+                                    Status: Present
+                                   </span>`
+                                : ''
+                        }
+
                     </div>
                 `;
             }
 
-            if (data.success) {
-                hasScannedSuccessfully = true;
-                showResult('success', "Attendance Marked Successfully!", data.message || "Your attendance has been marked as Present.", detailsHtml);
-            } else {
-                const msg = data.message || "Attendance could not be recorded.";
-                const isAlreadyMarked = msg.toLowerCase().includes("already marked");
-                const isExpired = msg.toLowerCase().includes("expired");
 
-                if (isAlreadyMarked) {
+            if (data.success) {
+
+                hasScannedSuccessfully = true;
+
+                showResult(
+                    'success',
+                    'Attendance Marked Successfully!',
+                    data.message ||
+                    'Your attendance has been marked as Present.',
+                    detailsHtml
+                );
+
+            } else {
+
+                hasScannedSuccessfully = false;
+
+                const msg =
+                    data.message ||
+                    'Attendance could not be recorded.';
+
+                const lowerMsg = msg.toLowerCase();
+
+                if (lowerMsg.includes('already marked')) {
+
                     hasScannedSuccessfully = true;
-                    showResult('info', "Attendance Already Marked", msg + " You are already marked Present for this lecture session.", detailsHtml);
-                } else if (isExpired) {
-                    hasScannedSuccessfully = false;
-                    showResult('error', "QR Code Expired", msg + " Please ask your faculty for a new QR code.");
+
+                    showResult(
+                        'info',
+                        'Attendance Already Marked',
+                        msg +
+                        ' You are already marked Present for this lecture session.',
+                        detailsHtml
+                    );
+
+                } else if (lowerMsg.includes('expired')) {
+
+                    showResult(
+                        'error',
+                        'QR Code Expired',
+                        msg +
+                        ' Please ask your faculty for a new QR code.'
+                    );
+
                 } else {
-                    hasScannedSuccessfully = false;
-                    showResult('error', "Attendance Not Marked", msg);
+
+                    showResult(
+                        'error',
+                        'Attendance Not Marked',
+                        msg
+                    );
                 }
             }
-        })
-        .catch(err => {
-            isSubmitting = false;
+
+        } catch (err) {
+
             hasScannedSuccessfully = false;
-            showResult('error', "Connection Error", "Failed to connect to server: " + err.message + ". Please try again.");
-        });
+
+            console.error('Attendance submission error:', err);
+
+            showResult(
+                'error',
+                'Connection Error',
+                err.message ||
+                'Failed to connect to server. Please try again.'
+            );
+
+        } finally {
+
+            // IMPORTANT:
+            // Always unlock submission after request completes.
+            isSubmitting = false;
+        }
     }
 
-    // 2. Result Banner UI Handler
+
+    // Stop camera without throwing errors
+    async function stopCameraSilently() {
+
+        if (!html5QrCode) {
+            return;
+        }
+
+        try {
+
+            const state = html5QrCode.getState();
+
+            // 2 = SCANNING
+            // 3 = PAUSED
+            if (state === 2 || state === 3) {
+                await html5QrCode.stop();
+            }
+
+        } catch (e) {
+            console.log('Camera stop skipped:', e);
+        }
+
+        const reader = document.getElementById('qr-reader');
+
+        if (reader) {
+
+            reader.innerHTML = `
+                <div class="text-white text-center p-4">
+
+                    <i class="bi bi-camera-fill fs-1 text-secondary mb-2 d-block"></i>
+
+                    <p class="small mb-0">
+                        Camera paused after scan.<br>
+                        Click 'Scan Another QR' if you have another lecture.
+                    </p>
+
+                </div>
+            `;
+        }
+    }
+
+
+    // Result Banner
     function showResult(type, title, message, details) {
+
         const alertBox = document.getElementById('resultAlert');
         const icon = document.getElementById('resultIcon');
         const titleEl = document.getElementById('resultTitle');
         const msgEl = document.getElementById('resultMessage');
         const detailsEl = document.getElementById('resultDetails');
 
-        alertBox.classList.remove('d-none', 'alert-success', 'alert-danger', 'alert-info', 'alert-warning');
+        if (!alertBox) return;
+
+        alertBox.classList.remove(
+            'd-none',
+            'alert-success',
+            'alert-danger',
+            'alert-info',
+            'alert-warning'
+        );
+
         titleEl.textContent = title;
         msgEl.textContent = message;
 
         if (details) {
+
             detailsEl.innerHTML = details;
             detailsEl.classList.remove('d-none');
+
         } else {
+
             detailsEl.classList.add('d-none');
             detailsEl.innerHTML = '';
         }
 
+
         if (type === 'success' || type === true) {
+
             alertBox.classList.add('alert-success');
-            icon.className = "bi bi-check-circle-fill text-success fs-2 me-3";
+
+            icon.className =
+                'bi bi-check-circle-fill text-success fs-2 me-3';
+
         } else if (type === 'info') {
+
             alertBox.classList.add('alert-info');
-            icon.className = "bi bi-info-circle-fill text-info fs-2 me-3";
+
+            icon.className =
+                'bi bi-info-circle-fill text-info fs-2 me-3';
+
         } else if (type === 'warning') {
+
             alertBox.classList.add('alert-warning');
-            icon.className = "bi bi-exclamation-triangle-fill text-warning fs-2 me-3";
+
+            icon.className =
+                'bi bi-exclamation-triangle-fill text-warning fs-2 me-3';
+
         } else if (type === 'error' || type === false) {
+
             alertBox.classList.add('alert-danger');
-            icon.className = "bi bi-x-circle-fill text-danger fs-2 me-3";
-        } else { // loading
+
+            icon.className =
+                'bi bi-x-circle-fill text-danger fs-2 me-3';
+
+        } else {
+
+            // loading
+
             alertBox.classList.add('alert-info');
-            icon.className = "bi bi-hourglass-split text-info fs-2 me-3";
+
+            icon.className =
+                'bi bi-hourglass-split text-info fs-2 me-3';
         }
 
-        alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        alertBox.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest'
+        });
     }
 
-    // 3. Reset Scanner for Another Scan
+
+    // Reset scanner
     function resetScanner() {
+
         hasScannedSuccessfully = false;
         isSubmitting = false;
-        const alertBox = document.getElementById('resultAlert');
-        if (alertBox) alertBox.classList.add('d-none');
-        const inputField = document.getElementById('inputSessionToken');
-        if (inputField) inputField.value = '';
+
+        const alertBox =
+            document.getElementById('resultAlert');
+
+        if (alertBox) {
+            alertBox.classList.add('d-none');
+        }
+
+        const inputField =
+            document.getElementById('inputSessionToken');
+
+        if (inputField) {
+            inputField.value = '';
+        }
+
+        const reader =
+            document.getElementById('qr-reader');
+
+        if (reader) {
+            reader.innerHTML = '';
+        }
+
         startCamera();
     }
 
-    // 4. Initialize HTML5 QR Code Scanner
-    function startCamera() {
-        hasScannedSuccessfully = false;
-        isSubmitting = false;
 
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("qr-reader");
+    // Start camera
+    function startCamera() {
+
+        if (isSubmitting) {
+            return;
         }
 
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        hasScannedSuccessfully = false;
 
-        html5QrCode.start({ facingMode: "environment" }, config,
+        const reader =
+            document.getElementById('qr-reader');
+
+        if (!reader) {
+            return;
+        }
+
+        // Clear previous camera/result content
+        reader.innerHTML = '';
+
+
+        if (!html5QrCode) {
+
+            html5QrCode =
+                new Html5Qrcode('qr-reader');
+        }
+
+
+        const config = {
+            fps: 10,
+            qrbox: {
+                width: 250,
+                height: 250
+            }
+        };
+
+
+        html5QrCode.start(
+            {
+                facingMode: 'environment'
+            },
+            config,
+
             (decodedText, decodedResult) => {
-                // If already submitting or successfully scanned, ignore subsequent frames
-                if (hasScannedSuccessfully || isSubmitting) {
+
+                // Ignore duplicate frames
+                if (isSubmitting || hasScannedSuccessfully) {
                     return;
                 }
 
-                const token = extractToken(decodedText);
-                if (!token) return;
+                const token =
+                    extractToken(decodedText);
 
-                // Immediately mark as scanned and pause camera to prevent duplicate frame processing
-                hasScannedSuccessfully = true;
+                if (!token) {
+                    return;
+                }
+
+                // Lock immediately so the same QR
+                // cannot trigger multiple requests.
                 isSubmitting = true;
-                try {
-                    html5QrCode.pause(true);
-                } catch (e) {}
 
-                document.getElementById('inputSessionToken').value = token;
+                // Show verification immediately
+                showResult(
+                    'loading',
+                    'Verifying Attendance...',
+                    'Validating session and recording attendance on server...'
+                );
+
+                const input =
+                    document.getElementById('inputSessionToken');
+
+                if (input) {
+                    input.value = token;
+                }
+
+                // Submit exactly once
                 submitAttendance(token);
             },
+
             (errorMessage) => {
-                // Scanning frame ignored
+                // Normal scanning errors are ignored.
             }
+
         ).catch(err => {
-            console.error("Camera start error", err);
-            const container = document.getElementById('qr-reader');
-            container.innerHTML = `
+
+            console.error(
+                'Camera start error:',
+                err
+            );
+
+            reader.innerHTML = `
                 <div class="text-white text-center p-4">
+
                     <i class="bi bi-camera-video-off fs-1 text-secondary mb-2 d-block"></i>
-                    <p class="small mb-0">Camera permission denied or camera unavailable.<br>Please use the manual session code input below.</p>
+
+                    <p class="small mb-0">
+                        Camera permission denied or camera unavailable.
+                        <br>
+                        Please use the manual session code input below.
+                    </p>
+
                 </div>
             `;
         });
     }
 
-    function stopCamera() {
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => {
-                console.log("Camera stopped");
-            }).catch(err => console.error("Error stopping camera", err));
+
+    // Stop camera
+    async function stopCamera() {
+
+        if (!html5QrCode) {
+            return;
+        }
+
+        try {
+
+            await html5QrCode.stop();
+
+            console.log('Camera stopped');
+
+        } catch (err) {
+
+            console.error(
+                'Error stopping camera:',
+                err
+            );
         }
     }
 
-    document.getElementById('btnStartCamera').addEventListener('click', startCamera);
-    document.getElementById('btnStopCamera').addEventListener('click', stopCamera);
 
-    // 5. Manual form submission intercept
-    document.getElementById('manualQrForm').addEventListener('submit', function (e) {
-        const rawToken = document.getElementById('inputSessionToken').value.trim();
-        if (rawToken) {
-            e.preventDefault();
-            submitAttendance(rawToken);
-        }
-    });
+    // Camera buttons
+    document
+        .getElementById('btnStartCamera')
+        .addEventListener(
+            'click',
+            startCamera
+        );
 
-    // Auto-initialize on page load
-    window.addEventListener('DOMContentLoaded', () => {
-        const prefill = document.getElementById('inputSessionToken').value.trim();
-        if (prefill) {
-            // If token came via URL parameter (e.g. ?token=...), submit it directly
-            submitAttendance(prefill);
-        } else {
-            startCamera();
+
+    document
+        .getElementById('btnStopCamera')
+        .addEventListener(
+            'click',
+            stopCamera
+        );
+
+
+    // Manual session code submission
+    document
+        .getElementById('manualQrForm')
+        .addEventListener(
+            'submit',
+            function (e) {
+
+                e.preventDefault();
+
+                if (isSubmitting) {
+                    return;
+                }
+
+                const input =
+                    document.getElementById('inputSessionToken');
+
+                const rawToken =
+                    input ? input.value.trim() : '';
+
+                if (!rawToken) {
+
+                    showResult(
+                        'error',
+                        'Session Code Required',
+                        'Please enter a valid attendance session code.'
+                    );
+
+                    return;
+                }
+
+                submitAttendance(rawToken);
+            }
+        );
+
+
+    // Page load
+    window.addEventListener(
+        'DOMContentLoaded',
+        () => {
+
+            const input =
+                document.getElementById('inputSessionToken');
+
+            const prefill =
+                input ? input.value.trim() : '';
+
+            if (prefill) {
+
+                submitAttendance(prefill);
+
+            } else {
+
+                startCamera();
+            }
         }
-    });
+    );
 </script>
 
 </body>
